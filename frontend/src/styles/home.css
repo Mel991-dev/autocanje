@@ -1,0 +1,1572 @@
+/* frontend/src/styles/home.css */
+
+/* ============================================
+   VARIABLES Y RESET
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   WRAPPER PRINCIPAL
+   ============================================ */
+
+.home-wrapper {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+
+.home-hero {
+  background: linear-gradient(135deg, #f0f4f8 0%, #e6eef5 100%);
+  padding: 4rem 0;
+}
+
+.home-hero-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Contenido del hero */
+.home-hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Badge de premium */
+.home-premium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Título del hero */
+.home-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+/* Descripción del hero */
+.home-hero-description {
+  font-size: 1.125rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* Botones del hero */
+.home-hero-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.home-btn-hero-primary {
+  padding: 0.875rem 1.75rem;
+  background: #007BFF;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.home-btn-hero-primary:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.home-btn-hero-outline {
+  padding: 0.875rem 1.75rem;
+  border: 2px solid #d1d5db;
+  background: transparent;
+  color: #374151;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.home-btn-hero-outline:hover {
+  background: #ffffff;
+  border-color: #007BFF;
+  color: #007BFF;
+}
+
+/* Imagen del hero */
+.home-hero-image {
+  position: relative;
+  height: 400px;
+}
+
+.home-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   SECCIONES GENERALES
+   ============================================ */
+
+.home-section-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Encabezado de sección (izquierda) */
+.home-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.home-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.home-section-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+/* Encabezado centrado */
+.home-section-header-center {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.home-section-header-center .home-section-title {
+  margin-bottom: 0.75rem;
+}
+
+.home-section-header-center .home-section-subtitle {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Botón Ver Todos */
+.home-btn-view-all {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.home-btn-view-all:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* ============================================
+   PRODUCTOS DESTACADOS
+   ============================================ */
+
+.home-featured-products {
+  padding: 4rem 0;
+}
+
+.home-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+/* Card de producto */
+.home-product-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-product-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Imagen del producto */
+.home-product-image {
+  position: relative;
+  aspect-ratio: 1;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.home-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.home-product-card:hover .home-product-image img {
+  transform: scale(1.05);
+}
+
+/* Badge de descuento */
+.home-product-discount {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Contenido del producto */
+.home-product-content {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Rating del producto */
+.home-product-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.home-rating-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.home-rating-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Vendedor */
+.home-product-seller {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Precios */
+.home-product-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.home-price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #007BFF;
+}
+
+.home-price-original {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Botón del producto */
+.home-product-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #007BFF;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-top: 1px solid #e5e7eb;
+}
+
+.home-product-button:hover {
+  background: #0056b3;
+}
+
+/* ============================================
+   INDICADORES DE CONFIANZA
+   ============================================ */
+
+.home-trust-indicators {
+  padding: 3rem 0;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.home-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+/* Item individual de confianza */
+.home-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home-trust-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 123, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007BFF;
+}
+
+.home-trust-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.home-trust-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ============================================
+   CATEGORÍAS POPULARES
+   ============================================ */
+
+.home-categories {
+  padding: 4rem 0;
+  background: #f9fafb;
+}
+
+.home-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.25rem;
+}
+
+/* Card de categoría */
+.home-category-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home-category-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  border-color: #007BFF;
+}
+
+/* Icono de categoría */
+.home-category-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Nombre de categoría */
+.home-category-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Contador de productos */
+.home-category-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   BENEFICIOS PREMIUM
+   ============================================ */
+
+.home-premium-benefits {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #fef3c7 0%, #e0e7ff 100%);
+}
+
+/* Badge premium grande */
+.home-premium-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.home-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto 2.5rem;
+}
+
+/* Card de beneficio */
+.home-benefit-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.home-benefit-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Icono de beneficio */
+.home-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 123, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: #007BFF;
+}
+
+.home-benefit-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.home-benefit-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* CTA Premium */
+.home-premium-cta {
+  text-align: center;
+}
+
+.home-btn-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: #007BFF;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.home-btn-premium:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+}
+
+/* ============================================
+   RESPONSIVE - TABLETS
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Hero section */
+  .home-hero-container {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-image {
+    height: 300px;
+  }
+
+  /* Productos */
+  .home-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Categorías */
+  .home-categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Trust indicators */
+  .home-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Benefits */
+  .home-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Hero */
+  .home-hero {
+    padding: 2rem 0;
+  }
+
+  .home-hero-title {
+    font-size: 1.875rem;
+  }
+
+  .home-hero-description {
+    font-size: 1rem;
+  }
+
+  .home-hero-buttons {
+    flex-direction: column;
+  }
+
+  .home-btn-hero-primary,
+  .home-btn-hero-outline {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Secciones */
+  .home-featured-products,
+  .home-categories,
+  .home-premium-benefits {
+    padding: 2.5rem 0;
+  }
+
+  .home-section-title {
+    font-size: 1.5rem;
+  }
+
+  /* Productos */
+  .home-products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* Categorías */
+  .home-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Trust indicators */
+  .home-trust-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ajustes para pantallas muy pequeñas */
+  .home-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .home-hero-description {
+    font-size: 0.9375rem;
+  }
+
+  .home-section-title {
+    font-size: 1.25rem;
+  }
+
+  .home-categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-price-current {
+    font-size: 1.25rem;
+  }
+}/* frontend/src/styles/home.css */
+
+/* ============================================
+   VARIABLES Y RESET
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   WRAPPER PRINCIPAL
+   ============================================ */
+
+.home-wrapper {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* ============================================
+   HEADER - Navegación Principal
+   ============================================ */
+
+/* Header fijo en la parte superior */
+.home-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor del header con ancho máximo */
+.home-header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* Logo con icono y texto */
+.home-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.home-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: #007BFF;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-logo-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+  fill: none;
+  stroke-width: 2;
+}
+
+.home-logo-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Barra de búsqueda */
+.home-search-bar {
+  flex: 1;
+  position: relative;
+  max-width: 600px;
+}
+
+.home-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  width: 18px;
+  height: 18px;
+}
+
+.home-search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.home-search-input:focus {
+  outline: none;
+  border-color: #007BFF;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Acciones del header */
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* Botón del carrito con badge */
+.home-cart-button {
+  position: relative;
+  padding: 0.5rem;
+  color: #1a1a1a;
+  transition: color 0.2s;
+}
+
+.home-cart-button:hover {
+  color: #007BFF;
+}
+
+.home-cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #007BFF;
+  color: white;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Botones del header */
+.home-btn-outline {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.home-btn-outline:hover {
+  background: #f9fafb;
+}
+
+.home-btn-primary {
+  padding: 0.5rem 1rem;
+  background: #007BFF;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.home-btn-primary:hover {
+  background: #0056b3;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+
+.home-hero {
+  background: linear-gradient(135deg, #f0f4f8 0%, #e6eef5 100%);
+  padding: 4rem 0;
+}
+
+.home-hero-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+/* Contenido del hero */
+.home-hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Badge de premium */
+.home-premium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Título del hero */
+.home-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+/* Descripción del hero */
+.home-hero-description {
+  font-size: 1.125rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* Botones del hero */
+.home-hero-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.home-btn-hero-primary {
+  padding: 0.875rem 1.75rem;
+  background: #007BFF;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.home-btn-hero-primary:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.home-btn-hero-outline {
+  padding: 0.875rem 1.75rem;
+  border: 2px solid #d1d5db;
+  background: transparent;
+  color: #374151;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.home-btn-hero-outline:hover {
+  background: #ffffff;
+  border-color: #007BFF;
+  color: #007BFF;
+}
+
+/* Imagen del hero */
+.home-hero-image {
+  position: relative;
+  height: 400px;
+}
+
+.home-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================
+   SECCIONES GENERALES
+   ============================================ */
+
+.home-section-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Encabezado de sección (izquierda) */
+.home-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.home-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.home-section-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+/* Encabezado centrado */
+.home-section-header-center {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.home-section-header-center .home-section-title {
+  margin-bottom: 0.75rem;
+}
+
+.home-section-header-center .home-section-subtitle {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Botón Ver Todos */
+.home-btn-view-all {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.home-btn-view-all:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* ============================================
+   PRODUCTOS DESTACADOS
+   ============================================ */
+
+.home-featured-products {
+  padding: 4rem 0;
+}
+
+.home-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+/* Card de producto */
+.home-product-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-product-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Imagen del producto */
+.home-product-image {
+  position: relative;
+  aspect-ratio: 1;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.home-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.home-product-card:hover .home-product-image img {
+  transform: scale(1.05);
+}
+
+/* Badge de descuento */
+.home-product-discount {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.625rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Contenido del producto */
+.home-product-content {
+  padding: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Rating del producto */
+.home-product-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.home-rating-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.home-rating-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Vendedor */
+.home-product-seller {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Precios */
+.home-product-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.home-price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #007BFF;
+}
+
+.home-price-original {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Botón del producto */
+.home-product-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #007BFF;
+  color: white;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-top: 1px solid #e5e7eb;
+}
+
+.home-product-button:hover {
+  background: #0056b3;
+}
+
+/* ============================================
+   INDICADORES DE CONFIANZA
+   ============================================ */
+
+.home-trust-indicators {
+  padding: 3rem 0;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.home-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  text-align: center;
+}
+
+/* Item individual de confianza */
+.home-trust-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home-trust-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 123, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #007BFF;
+}
+
+.home-trust-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.home-trust-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ============================================
+   CATEGORÍAS POPULARES
+   ============================================ */
+
+.home-categories {
+  padding: 4rem 0;
+  background: #f9fafb;
+}
+
+.home-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.25rem;
+}
+
+/* Card de categoría */
+.home-category-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home-category-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  border-color: #007BFF;
+}
+
+/* Icono de categoría */
+.home-category-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Nombre de categoría */
+.home-category-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Contador de productos */
+.home-category-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   BENEFICIOS PREMIUM
+   ============================================ */
+
+.home-premium-benefits {
+  padding: 4rem 0;
+  background: linear-gradient(135deg, #fef3c7 0%, #e0e7ff 100%);
+}
+
+/* Badge premium grande */
+.home-premium-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.home-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto 2.5rem;
+}
+
+/* Card de beneficio */
+.home-benefit-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.home-benefit-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Icono de beneficio */
+.home-benefit-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 123, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: #007BFF;
+}
+
+.home-benefit-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.home-benefit-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* CTA Premium */
+.home-premium-cta {
+  text-align: center;
+}
+
+.home-btn-premium {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: #007BFF;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.home-btn-premium:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+
+.home-footer {
+  background: #1a1a1a;
+  color: #9ca3af;
+  padding: 3rem 0 1.5rem;
+}
+
+.home-footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.home-footer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Columna del footer */
+.home-footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-footer-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.home-footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.home-footer-links a {
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.home-footer-links a:hover {
+  color: #007BFF;
+}
+
+/* Bottom del footer */
+.home-footer-bottom {
+  border-top: 1px solid #374151;
+  padding-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   RESPONSIVE - TABLETS
+   ============================================ */
+
+@media (max-width: 1024px) {
+  /* Hero section */
+  .home-hero-container {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero-image {
+    height: 300px;
+  }
+
+  /* Productos */
+  .home-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Categorías */
+  .home-categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Trust indicators */
+  .home-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Benefits */
+  .home-benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Footer */
+  .home-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Header */
+  .home-header-container {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .home-search-bar {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-header-actions {
+    gap: 0.5rem;
+  }
+
+  .home-btn-outline,
+  .home-btn-primary {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Hero */
+  .home-hero {
+    padding: 2rem 0;
+  }
+
+  .home-hero-title {
+    font-size: 1.875rem;
+  }
+
+  .home-hero-description {
+    font-size: 1rem;
+  }
+
+  .home-hero-buttons {
+    flex-direction: column;
+  }
+
+  .home-btn-hero-primary,
+  .home-btn-hero-outline {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Secciones */
+  .home-featured-products,
+  .home-categories,
+  .home-premium-benefits {
+    padding: 2.5rem 0;
+  }
+
+  .home-section-title {
+    font-size: 1.5rem;
+  }
+
+  /* Productos */
+  .home-products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  /* Categorías */
+  .home-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Trust indicators */
+  .home-trust-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  /* Footer */
+  .home-footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ajustes para pantallas muy pequeñas */
+  .home-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .home-hero-description {
+    font-size: 0.9375rem;
+  }
+
+  .home-section-title {
+    font-size: 1.25rem;
+  }
+
+  .home-categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-price-current {
+    font-size: 1.25rem;
+  }
+}

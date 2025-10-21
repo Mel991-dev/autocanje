@@ -1,0 +1,405 @@
+/* ============================================
+   VARIABLES CSS - Tokens de Diseño
+   ============================================ */
+:root {
+  /* Colores */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-text: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-light: #9ca3af;
+  --color-border: #e5e7eb;
+  --color-border-hover: #d1d5db;
+  --color-bg: #ffffff;
+  --color-bg-hover: #f9fafb;
+  --color-bg-secondary: #f3f4f6;
+  --color-bg-input: #f9fafb;
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fecaca;
+  
+  /* Espaciado */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 0.75rem;
+  --space-lg: 1rem;
+  --space-xl: 1.5rem;
+  
+  /* Bordes */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --border-width: 1px;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+  
+  /* Transiciones */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  /* Tipografía */
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+}
+
+/* ============================================
+   UTILIDADES BASE - Reutilizables
+   ============================================ */
+
+/* Layout */
+.flex { display: flex; }
+.flex-center { 
+  display: flex; 
+  align-items: center; 
+}
+.flex-between { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+.relative { position: relative; }
+.absolute { position: absolute; }
+
+/* Espaciado */
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+
+/* Texto */
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.text-sm { font-size: var(--font-size-sm); }
+.text-medium { font-weight: var(--font-weight-medium); }
+.text-semibold { font-weight: var(--font-weight-semibold); }
+
+/* Colores de texto */
+.text-primary { color: var(--color-text); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-danger { color: var(--color-danger); }
+
+/* ============================================
+   COMPONENTES BASE - Botones
+   ============================================ */
+
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+}
+
+/* Modificadores de botón */
+.btn-icon-only {
+  padding: var(--space-sm);
+  color: var(--color-primary);
+}
+
+.btn-outlined {
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.btn-outlined:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-danger {
+  color: var(--color-danger);
+}
+
+.btn-danger:hover {
+  background: var(--color-danger-bg);
+}
+
+/* ============================================
+   COMPONENTES BASE - Dropdown
+   ============================================ */
+
+.dropdown {
+  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown.show {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  z-index: 9999;
+}
+
+.dropdown-header {
+  padding: var(--space-lg);
+}
+
+.dropdown-divider {
+  height: var(--border-width);
+  background: var(--color-border);
+  margin: 0 var(--space-lg);
+}
+
+.dropdown-menu {
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-sm);
+}
+
+.dropdown-item span {
+  color: var(--color-primary);
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+/* ============================================
+   HEADER - Estructura Principal
+   ============================================ */
+
+.header {
+  background: var(--color-bg);
+  border-bottom: var(--border-width) solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+}
+
+/* ============================================
+   HEADER - Logo
+   ============================================ */
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.header-logo-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.header-logo-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
+
+.header-logo-text {
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+/* ============================================
+   HEADER - Búsqueda
+   ============================================ */
+
+.header-search {
+  flex: 1;
+  max-width: 600px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: var(--space-md);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md) var(--space-sm) 2.5rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--transition-fast);
+  background-color: var(--color-bg-input);
+  color: var(--color-text);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ============================================
+   HEADER - Acciones
+   ============================================ */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+/* Carrito */
+.cart-button {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--color-danger);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   MENÚ DE USUARIO
+   ============================================ */
+
+.user-menu-container {
+  position: relative;
+}
+
+.user-name {
+  color: var(--color-primary);
+}
+
+.user-menu-button svg {
+  color: var(--color-text-secondary);
+}
+
+/* Información del usuario en dropdown */
+.user-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ============================================
+   MENÚ MÓVIL
+   ============================================ */
+
+.mobile-menu-toggle {
+  display: none;
+}
+
+.mobile-menu {
+  display: none;
+  padding: var(--space-lg);
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.mobile-search {
+  margin-bottom: var(--space-lg);
+}
+
+.mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.mobile-user-info {
+  padding: var(--space-lg);
+  background: var(--color-bg-hover);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.mobile-user-info svg {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .header-search {
+    display: none;
+  }
+  
+  .btn-login,
+  .btn-register {
+    display: none;
+  }
+  
+  .user-name {
+    display: none;
+  }
+  
+  .mobile-menu-toggle {
+    display: flex;
+  }
+  
+  .mobile-menu {
+    display: block;
+  }
+}

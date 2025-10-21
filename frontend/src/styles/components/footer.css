@@ -1,0 +1,208 @@
+/* frontend/src/styles/components/footer.css */
+
+/* ============================================
+   FOOTER - Pie de Página
+   ============================================ */
+
+/* Footer principal */
+.footer {
+  background: #f8f9fa;
+  border-top: 1px solid #e5e7eb;
+  padding: 4rem 2rem 2rem;
+  margin-top: auto;
+}
+
+/* Contenedor del footer con ancho máximo */
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   CONTENIDO PRINCIPAL
+   ============================================ */
+
+/* Grid del contenido del footer */
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+/* Sección individual del footer */
+.footer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ============================================
+   TÍTULOS Y DESCRIPCIONES
+   ============================================ */
+
+/* Título de cada sección */
+.footer-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+/* Descripción (Sobre Autocanje) */
+.footer-description {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* ============================================
+   ENLACES
+   ============================================ */
+
+/* Contenedor de enlaces */
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Enlace individual */
+.footer-link {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.footer-link:hover {
+  color: #007BFF;
+}
+
+/* ============================================
+   CONTACTO
+   ============================================ */
+
+/* Contenedor de información de contacto */
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Item de contacto individual */
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+/* Hover en items de contacto con enlace */
+a.contact-item:hover {
+  color: #007BFF;
+}
+
+/* Icono de contacto */
+.contact-icon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+/* ============================================
+   REDES SOCIALES
+   ============================================ */
+
+/* Contenedor de redes sociales */
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Enlace de red social */
+.social-link {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.social-link:hover {
+  background: #007BFF;
+  border-color: #007BFF;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   COPYRIGHT
+   ============================================ */
+
+/* Sección inferior del footer */
+.footer-bottom {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 2rem;
+  text-align: center;
+}
+
+/* Texto de copyright */
+.copyright {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   RESPONSIVE - TABLETS
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - MÓVIL
+   ============================================ */
+
+@media (max-width: 640px) {
+  /* Reducir padding en móvil */
+  .footer {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  /* Una sola columna en móvil */
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Centrar contenido en móvil */
+  .footer-section {
+    text-align: center;
+  }
+
+  /* Centrar enlaces y contacto */
+  .footer-links,
+  .footer-contact {
+    align-items: center;
+  }
+
+  /* Centrar redes sociales */
+  .social-links {
+    justify-content: center;
+  }
+}

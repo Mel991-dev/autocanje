@@ -7,6 +7,8 @@ import {
   CheckCircle, Shield, Package, Plus, Eye, Edit, Trash2, Play
 } from 'lucide-react';
 import '../../styles/perfil.css';
+import Header from '../../components/header';
+import Footer from '../../components/footer';
 
 const Perfil = () => {
   const [usuario, setUsuario] = useState(null);
@@ -252,7 +254,9 @@ const Perfil = () => {
   }
 
   return (
+    
     <div className="perfil-page">
+      <Header/>
       {/* Header del Perfil */}
       <div className="perfil-header-card">
         <div className="perfil-header-left">
@@ -619,6 +623,7 @@ const Perfil = () => {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 };

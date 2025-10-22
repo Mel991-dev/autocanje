@@ -134,67 +134,10 @@
 }
 
 /* ============================================
-   COMPONENTES BASE - Dropdown
+   COMPONENTES BASE - Dropdown (ELIMINADO)
    ============================================ */
 
-.dropdown {
-  display: none;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-10px);
-  transition: opacity var(--transition-normal), transform var(--transition-normal);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.dropdown.show {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  z-index: 9999;
-}
-
-.dropdown-header {
-  padding: var(--space-lg);
-}
-
-.dropdown-divider {
-  height: var(--border-width);
-  background: var(--color-border);
-  margin: 0 var(--space-lg);
-}
-
-.dropdown-menu {
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-sm);
-}
-
-.dropdown-item span {
-  color: var(--color-primary);
-}
-
-.dropdown-item {
-  width: 100%;
-  padding: var(--space-md);
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
-}
-
-.dropdown-item:hover {
-  background: var(--color-bg-secondary);
-}
+/* --- SECCIÓN ELIMINADA --- */
 
 /* ============================================
    HEADER - Estructura Principal
@@ -321,22 +264,16 @@
 }
 
 /* ============================================
-   MENÚ DE USUARIO
+   MENÚ DE USUARIO (Modificado)
    ============================================ */
 
-.user-menu-container {
-  position: relative;
-}
+/* --- REGLAS ELIMINADAS --- */
+/* .user-menu-container (ELIMINADO) */
+/* .user-name (ELIMINADO) */
+/* .user-menu-button svg (ELIMINADO) */
 
-.user-name {
-  color: var(--color-primary);
-}
 
-.user-menu-button svg {
-  color: var(--color-text-secondary);
-}
-
-/* Información del usuario en dropdown */
+/* Información del usuario (Usado en móvil) */
 .user-info {
   flex: 1;
   overflow: hidden;
@@ -386,14 +323,17 @@
     display: none;
   }
   
+  /* --- INICIO DE CAMBIOS --- */
+  /* Se añaden .btn-profile y .btn-logout-desktop a la regla */
   .btn-login,
-  .btn-register {
+  .btn-register,
+  .btn-profile,
+  .btn-logout-desktop {
     display: none;
   }
+  /* --- FIN DE CAMBIOS --- */
   
-  .user-name {
-    display: none;
-  }
+  /* .user-name (ELIMINADO) */
   
   .mobile-menu-toggle {
     display: flex;

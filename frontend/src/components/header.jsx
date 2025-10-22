@@ -4,7 +4,7 @@ import '../styles/components/header.css';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  // const [userMenuOpen, setUserMenuOpen] = useState(false); // <--- ELIMINADO
   const [cartCount] = useState(3);
   const [usuario, setUsuario] = useState(null);
 
@@ -24,8 +24,9 @@ const Header = () => {
   }, []);
 
   const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
-  const toggleUserMenu = () => setUserMenuOpen(prev => !prev);
+  // const toggleUserMenu = () => setUserMenuOpen(prev => !prev); // <--- ELIMINADO
 
+  /* --- ELIMINADO ---
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (userMenuOpen && !e.target.closest('.user-menu-container')) {
@@ -35,6 +36,7 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [userMenuOpen]);
+  */
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -47,7 +49,7 @@ const Header = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     setUsuario(null);
-    setUserMenuOpen(false);
+    // setUserMenuOpen(false); // <--- ELIMINADO
     window.location.href = '/';
   };
 
@@ -92,35 +94,25 @@ const Header = () => {
           </button>
 
           {usuario ? (
-            <div className="user-menu-container">
-              <button
-                className="btn-base btn-outlined flex-center gap-sm user-menu-button"
-                onClick={toggleUserMenu}
+            // --- INICIO DE CAMBIOS ---
+            // Se reemplaza el div .user-menu-container por botones directos
+            <>
+              <a
+                href="/perfil"
+                className="btn-base btn-icon-only btn-outlined btn-profile"
+                aria-label="Ver Perfil"
               >
-                <UserCircle size={24} />
-                <span className="user-name text-sm text-medium">{getNombreCompleto()}</span>
+                <User size={24} />
+              </a>
+              <button
+                onClick={handleLogout}
+                className="btn-base btn-icon-only btn-outlined btn-danger btn-logout-desktop"
+                aria-label="Cerrar Sesión"
+              >
+                <LogOut size={24} />
               </button>
-
-              <div className={`dropdown ${userMenuOpen ? 'show' : ''}`}>
-                <ul className="dropdown-menu">
-                  <li>
-                    <a href="/perfil" className="btn-base dropdown-item flex-center gap-md text-sm">
-                      <User size={18} />
-                      <span>Ver Perfil</span>
-                    </a>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="btn-base dropdown-item btn-danger flex-center gap-md text-sm"
-                    >
-                      <LogOut size={18} />
-                      <span>Cerrar Sesión</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
+            </>
+            // --- FIN DE CAMBIOS ---
           ) : (
             <>
               <a href="/login" className="btn-base btn-outlined text-sm btn-login">
@@ -142,6 +134,7 @@ const Header = () => {
         </div>
       </div>
 
+      {/* El menú móvil no necesita cambios, ya que su lógica es independiente */}
       {mobileMenuOpen && (
         <div className="mobile-menu">
           <form className="mobile-search" onSubmit={handleSearch}>

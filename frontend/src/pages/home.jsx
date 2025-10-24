@@ -4,6 +4,7 @@ import React from 'react';
 import '../styles/home.css';
 import Header from '../components/header';
 import Footer from '../components/footer';
+import ProductosPanel from './vendedor/ProductosPanel';
 import { 
   Star, 
   Shield, 
@@ -111,8 +112,8 @@ const Home = () => {
               <a href="/catalog" className="home-btn-hero-primary">
                 Explorar Catálogo
               </a>
-              <a href="/seller" className="home-btn-hero-outline">
-                Vender Productos
+              <a href="/productos" className="home-btn-hero-outline">
+                Ver tus Productos
               </a>
             </div>
           </div>

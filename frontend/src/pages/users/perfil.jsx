@@ -6,9 +6,8 @@ import {
   User, Mail, Phone, MapPin, Lock, Save, AlertCircle, 
   CheckCircle, Shield, Package, Plus, Eye, Edit, Trash2, Play
 } from 'lucide-react';
+import ProductosPanel from '../vendedor/ProductosPanel';
 import '../../styles/perfil.css';
-import Header from '../../components/header';
-import Footer from '../../components/footer';
 
 const Perfil = () => {
   const [usuario, setUsuario] = useState(null);
@@ -254,9 +253,7 @@ const Perfil = () => {
   }
 
   return (
-    
     <div className="perfil-page">
-      <Header/>
       {/* Header del Perfil */}
       <div className="perfil-header-card">
         <div className="perfil-header-left">
@@ -427,7 +424,6 @@ const Perfil = () => {
                       value={formData.identificacion}
                       onChange={handleInputChange}
                       placeholder="1234567890"
-                      required
                     />
                   </div>
                 </div>
@@ -455,7 +451,6 @@ const Perfil = () => {
                       value={formData.telefono}
                       onChange={handleInputChange}
                       placeholder="+57 300 123 4567"
-                      required
                     />
                   </div>
                 </div>
@@ -472,7 +467,6 @@ const Perfil = () => {
                       value={formData.direccion}
                       onChange={handleInputChange}
                       placeholder="Calle 123 #45-67"
-                      required
                     />
                   </div>
                 </div>
@@ -487,7 +481,6 @@ const Perfil = () => {
                       name="es_vendedor"
                       checked={formData.es_vendedor}
                       onChange={handleInputChange}
-                      required
                     />
                     <span>Soy Vendedor</span>
                   </label>
@@ -497,7 +490,6 @@ const Perfil = () => {
                       name="es_comprador"
                       checked={formData.es_comprador}
                       onChange={handleInputChange}
-                      
                     />
                     <span>Soy Comprador</span>
                   </label>
@@ -628,7 +620,6 @@ const Perfil = () => {
           </div>
         )}
       </div>
-      <Footer/>
     </div>
   );
 };

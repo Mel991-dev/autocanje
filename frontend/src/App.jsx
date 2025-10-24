@@ -11,6 +11,7 @@ import Home from "./pages/home";
 import Header from "./components/header";
 import Footer from "./components/footer";
 import Perfil from "./pages/users/perfil";
+import ProductosPanel from "./pages/vendedor/ProductosPanel";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/login" element={<Login />} />
         <Route path="/perfil" element={<Perfil/>} />
+        <Route path="/productos" element={<ProductosPanel/>} />
       </Routes>
     </Router>
   );

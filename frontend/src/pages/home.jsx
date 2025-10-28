@@ -4,7 +4,6 @@ import React from 'react';
 import '../styles/home.css';
 import Header from '../components/header';
 import Footer from '../components/footer';
-import ProductosPanel from './vendedor/ProductosPanel';
 import { 
   Star, 
   Shield, 
@@ -109,7 +108,7 @@ const Home = () => {
 
             {/* Botones de acción */}
             <div className="home-hero-buttons">
-              <a href="/catalog" className="home-btn-hero-primary">
+              <a href="/catalogo" className="home-btn-hero-primary">
                 Explorar Catálogo
               </a>
               <a href="/productos" className="home-btn-hero-outline">

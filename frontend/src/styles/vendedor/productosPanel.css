@@ -258,12 +258,19 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-modal);
+  z-index: -1;
   padding: var(--space-4);
   animation: fadeIn var(--transition-normal);
+}
+
+.modal {
+  background: white;
+  animation: slideUp 0.3s ease-out;
+  z-index: 999999;
+  display: grid;
 }
 
 @keyframes fadeIn {
@@ -329,6 +336,7 @@
 
 .modal-form {
   padding: var(--space-6);
+  background-color: white;
 }
 
 .form-grid-modal {
@@ -463,6 +471,19 @@
   justify-content: center;
   min-height: 60vh;
   gap: var(--space-4);
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: slideUp 0.3s ease-out;
+  position: relative; /* Asegurar posicionamiento */
+  z-index: 10000; /* z-index aún más alto */
 }
 
 .spinner {

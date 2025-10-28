@@ -12,6 +12,8 @@ import Header from "./components/header";
 import Footer from "./components/footer";
 import Perfil from "./pages/users/perfil";
 import ProductosPanel from "./pages/vendedor/ProductosPanel";
+import Catalogo from "./pages/catalogo";
+import VistaPrevia from "./pages/producto/vistaPrevia";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/perfil" element={<Perfil/>} />
         <Route path="/productos" element={<ProductosPanel/>} />
+        <Route path="/catalogo" element={<Catalogo/>} />
+        <Route path="/vistaprevia" element={<VistaPrevia/>} />
       </Routes>
     </Router>
   );

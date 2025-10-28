@@ -21,7 +21,7 @@ const Footer = () => {
    * Datos de enlaces rápidos
    */
   const quickLinks = [
-    { label: 'Catálogo', href: '/catalog' },
+    { label: 'Catálogo', href: '/catalogo' },
     { label: 'Membresía Premium', href: '/premium' },
     { label: 'Vender en Autocanje', href: '/seller' },
     { label: 'Centro de Ayuda', href: '/help' },

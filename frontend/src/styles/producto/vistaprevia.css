@@ -1,0 +1,1068 @@
+/* frontend/src/styles/producto/vistaprevia.css */
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+
+.vista-previa-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f5f5f5;
+}
+
+/* ============================================
+   BREADCRUMB - Navegación
+   ============================================ */
+
+.breadcrumb {
+  /*eliminar breadcrumbs y rutas*/
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.breadcrumb a {
+  color: #6b7280;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb a:hover {
+  color: #007bff;
+}
+
+.breadcrumb .current {
+  color: #1a1a1a;
+}
+
+/* ============================================
+   LAYOUT DEL PRODUCTO
+   ============================================ */
+
+/* Grid de dos columnas: imágenes y info */
+.product-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin: 2rem 1rem;
+}
+
+/* ============================================
+   GALERÍA DE IMÁGENES
+   ============================================ */
+
+/* Contenedor de imágenes (sticky) */
+.product-images {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
+
+/* Imagen principal grande */
+.main-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Grid de miniaturas */
+.thumbnail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* Miniatura individual */
+.thumbnail {
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.thumbnail:hover {
+  border-color: #007bff;
+}
+
+.thumbnail.active {
+  border-color: #007bff;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================
+   INFORMACIÓN DEL PRODUCTO
+   ============================================ */
+
+/* Card de información */
+.product-info {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   HEADER DEL PRODUCTO
+   ============================================ */
+
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+/* Badge de categoría */
+.category-badge {
+  display: inline-block;
+  background: #1a1a1a;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Título del producto */
+.product-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+/* Metadatos (rating y ventas) */
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+/* Rating con estrellas */
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Botones de acción (favorito y compartir) */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f9fafb;
+  border-color: #007bff;
+}
+
+/* ============================================
+   SECCIÓN DE PRECIO
+   ============================================ */
+
+.price-section {
+  padding: 1.5rem 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Precio actual (destacado) */
+.current-price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #007bff;
+}
+
+/* Precio original (tachado) */
+.original-price {
+  font-size: 1.25rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Badge de descuento */
+.discount-badge {
+  background: #dc2626;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.price-note {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   SECCIÓN DE STOCK
+   ============================================ */
+
+.stock-section {
+  margin-bottom: 1.5rem;
+}
+
+.stock-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stock-text {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Barra de stock visual */
+.stock-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stock-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+  transition: width 0.3s ease;
+}
+
+/* ============================================
+   CONTROL DE CANTIDAD
+   ============================================ */
+
+.quantity-section {
+  margin-bottom: 1.5rem;
+}
+
+.quantity-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #374151;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Botones + y - */
+.quantity-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #007bff;
+}
+
+.quantity-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Valor de cantidad */
+.quantity-value {
+  width: 50px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #1a1a1a;
+}
+
+/* ============================================
+   BOTONES DE ACCIÓN PRINCIPALES
+   ============================================ */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos base de botones */
+.btn {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s;
+  font-size: 1rem;
+  border: none;
+  text-decoration: none;
+}
+
+/* Botón primario (Agregar al carrito) */
+.btn-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* Botón secundario (Comprar ahora) */
+.btn-secondary {
+  background: white;
+  border: 2px solid #e5e7eb;
+  color: #1a1a1a;
+}
+
+.btn-secondary:hover {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+/* Botón premium (Reservar) */
+.btn-premium {
+  background: white;
+  border: 2px solid #ffc107;
+  color: #1a1a1a;
+}
+
+.btn-premium:hover {
+  background: #fffbeb;
+}
+
+/* ============================================
+   TARJETA DE BENEFICIOS
+   ============================================ */
+
+.benefits-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Item individual de beneficio */
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.benefit-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.benefit-item:first-child {
+  padding-top: 0;
+}
+
+.benefit-icon {
+  color: #007bff;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.benefit-content {
+  flex: 1;
+}
+
+.benefit-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+}
+
+.benefit-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   TABS (Descripción y Reseñas)
+   ============================================ */
+
+.tabs {
+  margin-bottom: 3rem;
+}
+
+/* Lista de pestañas */
+.tabs-list {
+  display: flex;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+/* Botón de cada pestaña */
+.tab-button {
+  padding: 1rem 2rem;
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #007bff;
+}
+
+.tab-button.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+/* ============================================
+   CONTENIDO DE TABS
+   ============================================ */
+
+.tab-content {
+  display: block;
+}
+
+/* Card de descripción/reseñas */
+.description-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.description-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+}
+
+.description-text {
+  color: #6b7280;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+/* ============================================
+   RESEÑAS - HEADER
+   ============================================ */
+
+.reviews-header {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 2rem;
+}
+
+/* Score general */
+.reviews-score {
+  text-align: center;
+  min-width: 150px;
+}
+
+.big-rating {
+  font-size: 4rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: #1a1a1a;
+}
+/* frontend/src/styles/producto/vistaprevia.css */
+
+/* ... código anterior ... */
+
+.rating-stars-big {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.reviews-count {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   DESGLOSE DE RATINGS
+   ============================================ */
+
+.reviews-breakdown {
+  flex: 1;
+  max-width: 400px;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.breakdown-row:last-child {
+  margin-bottom: 0;
+}
+
+.breakdown-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  min-width: 30px;
+}
+
+.breakdown-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.breakdown-fill {
+  height: 100%;
+  background: #ffc107;
+  transition: width 0.3s ease;
+}
+
+.breakdown-percent {
+  font-size: 0.875rem;
+  color: #6b7280;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ============================================
+   LISTA DE RESEÑAS
+   ============================================ */
+
+.reviews-list {
+  margin-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 2rem;
+}
+
+/* Item de reseña individual */
+.review-item {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.review-item:last-child {
+  border-bottom: none;
+}
+
+/* Header de la reseña (avatar y usuario) */
+.review-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.review-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f3f4f6;
+}
+
+.review-user {
+  flex: 1;
+}
+
+.review-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.review-stars {
+  display: flex;
+  gap: 0.125rem;
+}
+
+/* Texto del comentario */
+.review-text {
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Botón de útil */
+.review-helpful {
+  background: none;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.review-helpful:hover {
+  background: #f9fafb;
+  border-color: #007bff;
+  color: #007bff;
+}
+
+/* ============================================
+   FOOTER DE RESEÑAS
+   ============================================ */
+
+.reviews-footer {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+/* ============================================
+   PLACEHOLDER DE IMÁGENES
+   ============================================ */
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+/* ============================================
+   ESTADOS ESPECIALES
+   ============================================ */
+
+/* Producto sin stock */
+.out-of-stock .current-price {
+  color: #9ca3af;
+}
+
+.out-of-stock .btn-primary {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.out-of-stock .btn-primary:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Producto con stock bajo */
+.low-stock .stock-status {
+  color: #dc2626;
+}
+
+.low-stock .stock-fill {
+  background: linear-gradient(90deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.product-layout {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.product-info {
+  animation: slideUp 0.5s ease-out;
+}
+
+/* ============================================
+   ESTADOS INTERACTIVOS
+   ============================================ */
+
+/* Botón de favorito activo */
+.btn-icon.favorite-active {
+  background: #fee2e2;
+  border-color: #ef4444;
+}
+
+/* Imagen activa en galería */
+.thumbnail.active {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .product-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .product-images {
+    position: relative;
+    top: 0;
+  }
+
+  .reviews-header {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .reviews-breakdown {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .vista-previa-container {
+    padding: 1rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.75rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .product-title {
+    font-size: 1.5rem;
+  }
+
+  .current-price {
+    font-size: 2rem;
+  }
+
+  .thumbnail-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .product-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .product-meta {
+    flex-wrap: wrap;
+  }
+
+  .reviews-header {
+    gap: 1.5rem;
+  }
+
+  .reviews-score {
+    min-width: 100%;
+  }
+
+  .big-rating {
+    font-size: 3rem;
+  }
+
+  .description-card {
+    padding: 1.5rem;
+  }
+
+  .tabs-list {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vista-previa-container {
+    padding: 0.5rem;
+  }
+
+  .product-info {
+    padding: 1.5rem;
+  }
+
+  .product-title {
+    font-size: 1.25rem;
+  }
+
+  .current-price {
+    font-size: 1.75rem;
+  }
+
+  .original-price {
+    font-size: 1rem;
+  }
+
+  .thumbnail-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .actions {
+    gap: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .benefits-card {
+    padding: 1rem;
+  }
+
+  .benefit-item {
+    padding: 0.75rem 0;
+  }
+
+  .benefit-title,
+  .benefit-description {
+    font-size: 0.75rem;
+  }
+
+  .quantity-controls {
+    gap: 0.75rem;
+  }
+
+  .quantity-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .review-header {
+    gap: 0.75rem;
+  }
+
+  .review-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .review-text {
+    font-size: 0.875rem;
+  }
+
+  .breakdown-row {
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .breakdown-label {
+    min-width: 25px;
+    font-size: 0.75rem;
+  }
+
+  .breakdown-percent {
+    min-width: 35px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   ACCESIBILIDAD
+   ============================================ */
+
+/* Focus visible para navegación por teclado */
+.btn:focus-visible,
+.tab-button:focus-visible,
+.btn-icon:focus-visible,
+.quantity-btn:focus-visible,
+.thumbnail:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Reducir movimiento para usuarios que lo prefieran */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
+/* Texto truncado */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Ocultar en móvil */
+.hide-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+/* Mostrar solo en móvil */
+.show-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .show-mobile {
+    display: block;
+  }
+}
+
+/* ============================================
+   ESTADO DE CARGA
+   ============================================ */
+
+.loading-skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ============================================
+   IMPRESIÓN
+   ============================================ */
+
+@media print {
+  .action-buttons,
+  .actions,
+  .btn-icon,
+  .breadcrumb,
+  .tabs-list {
+    display: none;
+  }
+
+  .product-layout {
+    display: block;
+  }
+
+  .product-images,
+  .product-info {
+    page-break-inside: avoid;
+  }
+
+  .vista-previa-container {
+    background: white;
+  }
+}

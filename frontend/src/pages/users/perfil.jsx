@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-  User, Mail, Phone, MapPin, Lock, Save, AlertCircle, 
-  CheckCircle, Shield, Package, Plus, Eye, Edit, Trash2, Play
-} from 'lucide-react';
+import { User, Mail, Phone, MapPin, Lock, Save, Edit, Shield, TrendingUp, Package, DollarSign, Star } from 'lucide-react';
 import ProductosPanel from '../vendedor/ProductosPanel';
 import '../../styles/perfil.css';
+import '../../styles/vendedor/productosPanel.css';
+import '../../styles/globals.css';
+import Header from '../../components/header';
+import Footer from '../../components/footer';
 
 const Perfil = () => {
   const [usuario, setUsuario] = useState(null);
@@ -16,10 +17,9 @@ const Perfil = () => {
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
   
-  // Tab activo
-  const [tabActivo, setTabActivo] = useState('informacion');
+  const [tabActivo, setTabActivo] = useState('personal');
+  const [modoEdicion, setModoEdicion] = useState(false);
   
-  // Formulario de información personal
   const [formData, setFormData] = useState({
     identificacion: '',
     primer_nombre: '',
@@ -34,17 +34,12 @@ const Perfil = () => {
     es_admin: false
   });
   
-  // Formulario de cambio de contraseña
   const [passwordData, setPasswordData] = useState({
     contrasena_actual: '',
     contrasena_nueva: '',
     confirmar_contrasena: ''
   });
 
-  // Productos del vendedor (mock data por ahora)
-  const [productos, setProductos] = useState([]);
-
-  // Cargar datos del usuario al montar
   useEffect(() => {
     cargarPerfil();
   }, []);
@@ -116,6 +111,13 @@ const Perfil = () => {
     }));
   };
 
+  const toggleModoEdicion = () => {
+    setModoEdicion(!modoEdicion);
+    if (modoEdicion) {
+      cargarPerfil();
+    }
+  };
+
   const guardarInformacion = async (e) => {
     e.preventDefault();
     setGuardando(true);
@@ -142,14 +144,13 @@ const Perfil = () => {
         const usuarioActualizado = response.data.usuario;
         localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
         
-        // Actualizar token si viene en la respuesta (roles cambiaron)
         if (response.data.token) {
           localStorage.setItem('token', response.data.token);
         }
         
         setUsuario(usuarioActualizado);
+        setModoEdicion(false);
         
-        // Actualizar formData con los nuevos valores
         setFormData({
           identificacion: usuarioActualizado.identificacion || '',
           primer_nombre: usuarioActualizado.primer_nombre || '',
@@ -237,9 +238,9 @@ const Perfil = () => {
 
   const getRoles = () => {
     const roles = [];
-    if (usuario?.es_admin) roles.push('Admin');
-    if (usuario?.es_vendedor) roles.push('Vendedor');
-    if (usuario?.es_comprador) roles.push('Comprador');
+    if (usuario?.es_admin) roles.push({ label: 'Premium', clase: 'badge-premium' });
+    if (usuario?.es_vendedor) roles.push({ label: 'Vendedor', clase: 'badge-outline' });
+    if (usuario?.es_comprador) roles.push({ label: 'Comprador', clase: 'badge-outline' });
     return roles;
   };
 
@@ -253,373 +254,352 @@ const Perfil = () => {
   }
 
   return (
-    <div className="perfil-page">
-      {/* Header del Perfil */}
-      <div className="perfil-header-card">
-        <div className="perfil-header-left">
-          <div className="perfil-avatar">
-            <User size={40} />
+    <div className="container-perfil">
+      <Header/>
+      {/* Profile Header */}
+      <div className="profile-header">
+        <div className="profile-header-content">
+          <div className="avatar">
+            <User size={48} />
           </div>
-          <div className="perfil-header-info">
-            <h1 className="perfil-nombre">{getNombreCompleto()}</h1>
-            <p className="perfil-email">{usuario?.email}</p>
-            <div className="perfil-contacto">
-              {usuario?.telefono && (
-                <span className="perfil-contacto-item">
-                  <Phone size={14} />
-                  {usuario.telefono}
+          
+          <div className="profile-info">
+            <div className="profile-name-row">
+              <h1 className="profile-name">{getNombreCompleto()}</h1>
+              {getRoles().map((rol, index) => (
+                <span key={index} className={`badge ${rol.clase}`}>
+                  {rol.label}
                 </span>
+              ))}
+            </div>
+            <p className="profile-email">{usuario?.email}</p>
+            <div className="profile-details">
+              {usuario?.telefono && (
+                <div className="profile-detail">
+                  <Phone size={16} />
+                  <span>{usuario.telefono}</span>
+                </div>
               )}
               {usuario?.direccion && (
-                <span className="perfil-contacto-item">
-                  <MapPin size={14} />
-                  {usuario.direccion}
-                </span>
+                <div className="profile-detail">
+                  <MapPin size={16} />
+                  <span>{usuario.direccion}</span>
+                </div>
               )}
             </div>
           </div>
-        </div>
-        <div className="perfil-header-right">
-          <div className="perfil-badges">
-            {usuario?.es_admin && (
-              <span className="badge badge-premium">Premium</span>
+
+          <button className="btn btn-outline" onClick={toggleModoEdicion}>
+            {modoEdicion ? (
+              <>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Cancelar
+              </>
+            ) : (
+              <>
+                <Edit size={16} />
+                Editar Perfil
+              </>
             )}
-            {getRoles().map(rol => (
-              <span key={rol} className="badge badge-role">{rol}</span>
-            ))}
-          </div>
-          <button className="btn-edit-perfil" onClick={() => setTabActivo('informacion')}>
-            <Edit size={18} />
-            Editar Perfil
           </button>
         </div>
       </div>
 
-      {/* Mensajes */}
+      {/* Alertas */}
       {error && (
         <div className="alert alert-error">
-          <AlertCircle size={20} />
           <span>{error}</span>
         </div>
       )}
       
       {exito && (
         <div className="alert alert-success">
-          <CheckCircle size={20} />
           <span>{exito}</span>
         </div>
       )}
 
-      {/* Tabs de navegación */}
-      <div className="perfil-tabs-container">
-        <button
-          className={`perfil-tab ${tabActivo === 'informacion' ? 'active' : ''}`}
-          onClick={() => setTabActivo('informacion')}
-        >
-          <User size={20} />
-          <span>Información Personal</span>
-        </button>
-        
-        <button
-          className={`perfil-tab ${tabActivo === 'seguridad' ? 'active' : ''}`}
-          onClick={() => setTabActivo('seguridad')}
-        >
-          <Shield size={20} />
-          <span>Seguridad</span>
-        </button>
-        
-        {usuario?.es_vendedor && (
+      {/* Tabs */}
+      <div className="tabs">
+        <div className="tabs-list">
           <button
-            className={`perfil-tab ${tabActivo === 'vendedor' ? 'active' : ''}`}
-            onClick={() => setTabActivo('vendedor')}
+            className={`tab-button ${tabActivo === 'personal' ? 'active' : ''}`}
+            onClick={() => setTabActivo('personal')}
           >
-            <Package size={20} />
-            <span>Panel Vendedor</span>
+            <User size={16} />
+            <span>Información Personal</span>
           </button>
-        )}
-        
-        <button
-          className={`perfil-tab ${tabActivo === 'productos' ? 'active' : ''}`}
-          onClick={() => setTabActivo('productos')}
-        >
-          <Package size={20} />
-          <span>Mis Productos</span>
-        </button>
+          
+          <button
+            className={`tab-button ${tabActivo === 'security' ? 'active' : ''}`}
+            onClick={() => setTabActivo('security')}
+          >
+            <Shield size={16} />
+            <span>Seguridad</span>
+          </button>
+          
+          {usuario?.es_vendedor && (
+            <>
+              <button
+                className={`tab-button ${tabActivo === 'seller' ? 'active' : ''}`}
+                onClick={() => setTabActivo('seller')}
+              >
+                <TrendingUp size={16} />
+                <span>Panel Vendedor</span>
+              </button>
+              
+              <button
+                className={`tab-button ${tabActivo === 'products' ? 'active' : ''}`}
+                onClick={() => setTabActivo('products')}
+              >
+                <Package size={16} />
+                <span>Mis Productos</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Contenido de tabs */}
-      <div className="perfil-content-wrapper">
-        {/* TAB: Información Personal */}
-        {tabActivo === 'informacion' && (
-          <div className="perfil-content-card">
-            <div className="content-header">
-              <h2>Información Personal</h2>
-              <p>Actualiza tus datos personales y de contacto</p>
+      {/* Tab Content: Personal */}
+      {tabActivo === 'personal' && (
+        <div className="tab-content active">
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Información Personal</h2>
+              <p className="card-description">Actualiza tus datos personales y de contacto</p>
             </div>
-
             <form onSubmit={guardarInformacion}>
-              {/* Sección: Datos Personales */}
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Nombres</h3>
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>Primer Nombre *</label>
-                    <input
-                      type="text"
-                      name="primer_nombre"
-                      value={formData.primer_nombre}
-                      onChange={handleInputChange}
-                      placeholder="Juan Carlos"
-                      required
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Segundo Nombre</label>
-                    <input
-                      type="text"
-                      name="segundo_nombre"
-                      value={formData.segundo_nombre}
-                      onChange={handleInputChange}
-                      placeholder="Alonso"
-                    />
-                  </div>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="primer_nombre">Nombres</label>
+                  <input
+                    type="text"
+                    id="primer_nombre"
+                    name="primer_nombre"
+                    value={formData.primer_nombre}
+                    onChange={handleInputChange}
+                    placeholder="Primer nombre"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="primer_apellido">Apellidos</label>
+                  <input
+                    type="text"
+                    id="primer_apellido"
+                    name="primer_apellido"
+                    value={formData.primer_apellido}
+                    onChange={handleInputChange}
+                    placeholder="Primer apellido"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="segundo_nombre">Segundo Nombre</label>
+                  <input
+                    type="text"
+                    id="segundo_nombre"
+                    name="segundo_nombre"
+                    value={formData.segundo_nombre}
+                    onChange={handleInputChange}
+                    placeholder="Segundo nombre (opcional)"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="segundo_apellido">Segundo Apellido</label>
+                  <input
+                    type="text"
+                    id="segundo_apellido"
+                    name="segundo_apellido"
+                    value={formData.segundo_apellido}
+                    onChange={handleInputChange}
+                    placeholder="Segundo apellido (opcional)"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="identificacion">Identificación Personal</label>
+                  <input
+                    type="text"
+                    id="identificacion"
+                    name="identificacion"
+                    value={formData.identificacion}
+                    onChange={handleInputChange}
+                    placeholder="Número de identificación"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="email">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="tu@email.com"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="telefono">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="telefono"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleInputChange}
+                    placeholder="+57 300 123 4567"
+                    disabled={!modoEdicion}
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="direccion">Dirección Completa</label>
+                  <input
+                    type="text"
+                    id="direccion"
+                    name="direccion"
+                    value={formData.direccion}
+                    onChange={handleInputChange}
+                    placeholder="Calle, ciudad, código postal..."
+                    disabled={!modoEdicion}
+                  />
                 </div>
               </div>
-
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Apellidos</h3>
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>Primer Apellido *</label>
-                    <input
-                      type="text"
-                      name="primer_apellido"
-                      value={formData.primer_apellido}
-                      onChange={handleInputChange}
-                      placeholder="Pérez García"
-                      required
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Segundo Apellido</label>
-                    <input
-                      type="text"
-                      name="segundo_apellido"
-                      value={formData.segundo_apellido}
-                      onChange={handleInputChange}
-                      placeholder="Duarte"
-                    />
-                  </div>
+              {modoEdicion && (
+                <div className="form-actions">
+                  <button type="submit" className="btn btn-primary" disabled={guardando}>
+                    <Save size={16} />
+                    {guardando ? 'Guardando...' : 'Guardar Cambios'}
+                  </button>
+                  <button type="button" className="btn btn-outline" onClick={toggleModoEdicion}>
+                    Cancelar
+                  </button>
                 </div>
-              </div>
-
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Identificación Personal</h3>
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>Identificación</label>
-                    <input
-                      type="text"
-                      name="identificacion"
-                      value={formData.identificacion}
-                      onChange={handleInputChange}
-                      placeholder="1234567890"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Información de Contacto</h3>
-                <div className="form-row">
-                  <div className="form-field">
-                    <label>Correo Electrónico *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="juan.perez@email.com"
-                      required
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Teléfono</label>
-                    <input
-                      type="tel"
-                      name="telefono"
-                      value={formData.telefono}
-                      onChange={handleInputChange}
-                      placeholder="+57 300 123 4567"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Dirección</h3>
-                <div className="form-row">
-                  <div className="form-field full-width">
-                    <label>Dirección Completa</label>
-                    <input
-                      type="text"
-                      name="direccion"
-                      value={formData.direccion}
-                      onChange={handleInputChange}
-                      placeholder="Calle 123 #45-67"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-section-perfil">
-                <h3 className="section-title-perfil">Roles</h3>
-                <div className="roles-grid">
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="es_vendedor"
-                      checked={formData.es_vendedor}
-                      onChange={handleInputChange}
-                    />
-                    <span>Soy Vendedor</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="es_comprador"
-                      checked={formData.es_comprador}
-                      onChange={handleInputChange}
-                    />
-                    <span>Soy Comprador</span>
-                  </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      name="es_admin"
-                      checked={formData.es_admin}
-                      onChange={handleInputChange}
-                    />
-                    <span>Soy Administrador</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-actions-perfil">
-                <button type="submit" className="btn btn-primary" disabled={guardando}>
-                  <Save size={18} />
-                  {guardando ? 'Guardando...' : 'Guardar Cambios'}
-                </button>
-              </div>
+              )}
             </form>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* TAB: Seguridad */}
-        {tabActivo === 'seguridad' && (
-          <div className="perfil-content-card">
-            <div className="content-header">
-              <h2>Cambiar Contraseña</h2>
-              <p>Actualiza tu contraseña para mantener tu cuenta segura</p>
+      {/* Tab Content: Security */}
+      {tabActivo === 'security' && (
+        <div className="tab-content active">
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Cambiar Contraseña</h2>
+              <p className="card-description">Actualiza tu contraseña para mantener tu cuenta segura</p>
             </div>
-
-            <form onSubmit={cambiarContrasena} className="security-form">
-              <div className="form-section-perfil">
-                <div className="form-row single-column">
-                  <div className="form-field">
-                    <label>Contraseña Actual *</label>
-                    <input
-                      type="password"
-                      name="contrasena_actual"
-                      value={passwordData.contrasena_actual}
-                      onChange={handlePasswordChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label>Nueva Contraseña *</label>
-                    <input
-                      type="password"
-                      name="contrasena_nueva"
-                      value={passwordData.contrasena_nueva}
-                      onChange={handlePasswordChange}
-                      required
-                      minLength={8}
-                    />
-                    <small>Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</small>
-                  </div>
-
-                  <div className="form-field">
-                    <label>Confirmar Nueva Contraseña *</label>
-                    <input
-                      type="password"
-                      name="confirmar_contrasena"
-                      value={passwordData.confirmar_contrasena}
-                      onChange={handlePasswordChange}
-                      required
-                    />
-                  </div>
+            <form onSubmit={cambiarContrasena}>
+              <div className="form-grid">
+                <div className="form-group full-width">
+                  <label htmlFor="contrasena_actual">Contraseña Actual</label>
+                  <input
+                    type="password"
+                    id="contrasena_actual"
+                    name="contrasena_actual"
+                    value={passwordData.contrasena_actual}
+                    onChange={handlePasswordChange}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="contrasena_nueva">Nueva Contraseña</label>
+                  <input
+                    type="password"
+                    id="contrasena_nueva"
+                    name="contrasena_nueva"
+                    value={passwordData.contrasena_nueva}
+                    onChange={handlePasswordChange}
+                    placeholder="••••••••"
+                  />
+                  <span className="help-text">Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</span>
+                </div>
+                <div className="form-group full-width">
+                  <label htmlFor="confirmar_contrasena">Confirmar Nueva Contraseña</label>
+                  <input
+                    type="password"
+                    id="confirmar_contrasena"
+                    name="confirmar_contrasena"
+                    value={passwordData.confirmar_contrasena}
+                    onChange={handlePasswordChange}
+                    placeholder="••••••••"
+                  />
                 </div>
               </div>
-
-              <div className="form-actions-perfil">
+              <div className="form-actions">
                 <button type="submit" className="btn btn-primary" disabled={guardando}>
-                  <Lock size={18} />
+                  <Lock size={16} />
                   {guardando ? 'Actualizando...' : 'Actualizar Contraseña'}
                 </button>
               </div>
             </form>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* TAB: Panel Vendedor / Mis Productos */}
-        {(tabActivo === 'vendedor' || tabActivo === 'productos') && (
-          <div className="perfil-content-card">
-            <div className="content-header productos-header">
-              <div>
-                <h2>Mis Productos</h2>
-                <p>Gestiona tu inventario y publicaciones</p>
+      {/* Tab Content: Seller Dashboard */}
+      {tabActivo === 'seller' && (
+        <div className="tab-content active">
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-header">
+                <span className="stat-title">Total Productos</span>
+                <Package className="stat-icon" size={20} />
               </div>
-              <button className="btn btn-primary">
-                <Plus size={18} />
-                Nuevo Producto
-              </button>
+              <div className="stat-value">0</div>
+              <div className="stat-description">0 activos</div>
             </div>
 
-            {productos.length === 0 ? (
-              <div className="empty-state">
-                <Package size={64} className="empty-icon" />
-                <h3>No tienes productos publicados</h3>
-                <p>Comienza a vender publicando tu primer producto</p>
-                <button className="btn btn-primary btn-lg">
-                  <Plus size={20} />
-                  Crear Producto
-                </button>
+            <div className="stat-card">
+              <div className="stat-header">
+                <span className="stat-title">Ventas Totales</span>
+                <TrendingUp className="stat-icon" size={20} />
               </div>
-            ) : (
-              <div className="productos-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Producto</th>
-                      <th>Categoría</th>
-                      <th>Precio</th>
-                      <th>Stock</th>
-                      <th>Ventas</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Los productos se renderizarán aquí */}
-                  </tbody>
-                </table>
+              <div className="stat-value">0</div>
+              <div className="stat-description">Próximamente</div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-header">
+                <span className="stat-title">Ingresos Totales</span>
+                <DollarSign className="stat-icon" size={20} />
               </div>
-            )}
+              <div className="stat-value">$0</div>
+              <div className="stat-description">COP</div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-header">
+                <span className="stat-title">Calificación</span>
+                <Star className="stat-icon" size={20} style={{fill: '#FFC107', stroke: '#FFC107'}} />
+              </div>
+              <div className="stat-value">0/5.0</div>
+              <div className="stat-description">Sin reseñas aún</div>
+            </div>
           </div>
-        )}
-      </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h2 className="card-title">Ventas Recientes</h2>
+              <p className="card-description">Últimas transacciones de tus productos</p>
+            </div>
+            <div style={{padding: '2rem', textAlign: 'center', color: '#6b7280'}}>
+              <p>No hay ventas registradas aún</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Content: Products */}
+      {tabActivo === 'products' && (
+        <div className="tab-content active">
+          <ProductosPanel />
+        </div>
+      )}
+      <Footer/>
     </div>
   );
 };

@@ -242,6 +242,26 @@
   border-color: #007BFF;
 }
 
+/* Precio Inputs */
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.price-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #007BFF;
+}
+
 /* ================================================
    GRID DE PRODUCTOS
    ================================================ */

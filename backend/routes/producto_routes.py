@@ -7,7 +7,10 @@ from controllers.producto_controller import (
     eliminar_producto_controller,
     pausar_producto_controller,
     obtener_categorias_controller,
-    obtener_tipos_vehiculo_controller
+    obtener_tipos_vehiculo_controller,
+    subir_imagenes_producto,
+    eliminar_imagen_producto_controller,
+    obtener_imagenes_producto_controller
 )
 
 producto_bp = Blueprint("producto_bp", __name__, url_prefix="/api/productos")
@@ -32,6 +35,19 @@ def eliminar_producto_route(id_producto):
 @producto_bp.route("/<int:id_producto>/pausar", methods=["PATCH", "OPTIONS"])
 def pausar_producto_route(id_producto):
     return pausar_producto_controller(id_producto)
+
+# Rutas de imágenes
+@producto_bp.route("/imagenes/subir", methods=["POST", "OPTIONS"])
+def subir_imagenes_route():
+    return subir_imagenes_producto()
+
+@producto_bp.route("/imagenes/<int:id_imagen>", methods=["DELETE", "OPTIONS"])
+def eliminar_imagen_route(id_imagen):
+    return eliminar_imagen_producto_controller(id_imagen)
+
+@producto_bp.route("/<int:id_producto>/imagenes", methods=["GET", "OPTIONS"])
+def obtener_imagenes_route(id_producto):
+    return obtener_imagenes_producto_controller(id_producto)
 
 # Rutas públicas
 @producto_bp.route("/categorias", methods=["GET"])

@@ -6,14 +6,12 @@ import {
   Plus,
   Edit,
   Trash2,
-  Eye,
-  EyeOff,
-  Package,
-  X,
   Play,
   Pause,
+  Upload,
+  X,
+  Image as ImageIcon,
 } from "lucide-react";
-import Perfil from "../users/perfil";
 import "../../styles/vendedor/productosPanel.css";
 import "../../styles/perfil.css";
 
@@ -29,6 +27,10 @@ const ProductosPanel = () => {
 
   const [categorias, setCategorias] = useState([]);
   const [tiposVehiculo, setTiposVehiculo] = useState([]);
+
+  // Estado para imágenes
+  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
+  const [imagenesPreview, setImagenesPreview] = useState([]);
 
   const [formData, setFormData] = useState({
     nombre_producto: "",
@@ -118,29 +120,69 @@ const ProductosPanel = () => {
     }));
   };
 
-const abrirModalCrear = () => {
-    console.log('🔵 Abriendo modal crear'); // Debug
+  // Manejo de imágenes
+  const handleImagenesChange = (e) => {
+    const files = Array.from(e.target.files);
+
+    if (files.length + imagenesSeleccionadas.length > 5) {
+      setError("Máximo 5 imágenes permitidas");
+      return;
+    }
+
+    // Validar tamaño y tipo
+    const validas = files.filter((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        setError(`${file.name} excede el tamaño máximo de 5MB`);
+        return false;
+      }
+      if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.type)) {
+        setError(`${file.name} no es un formato válido`);
+        return false;
+      }
+      return true;
+    });
+
+    setImagenesSeleccionadas((prev) => [...prev, ...validas]);
+
+    // Crear previews
+    validas.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagenesPreview((prev) => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const eliminarImagenPreview = (index) => {
+    setImagenesSeleccionadas((prev) => prev.filter((_, i) => i !== index));
+    setImagenesPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const abrirModalCrear = () => {
     setModoEdicion(false);
     setProductoEditando(null);
     setFormData({
-      nombre_producto: '',
-      descripcion: '',
-      fk_categoria: '',
-      fk_tipo_vehiculo: '',
-      precio: '',
-      stock: '',
-      pausado: false
+      nombre_producto: "",
+      descripcion: "",
+      fk_categoria: "",
+      fk_tipo_vehiculo: "",
+      precio: "",
+      stock: "",
+      pausado: false,
     });
+    setImagenesSeleccionadas([]);
+    setImagenesPreview([]);
     setModalAbierto(true);
-    console.log('✅ Modal abierto:', true); // Debug
   };
 
   const cerrarModal = () => {
-    console.log('🔴 Cerrando modal'); // Debug
     setModalAbierto(false);
     setModoEdicion(false);
     setProductoEditando(null);
-    setError('');
+    setError("");
+    setImagenesSeleccionadas([]);
+    setImagenesPreview([]);
   };
 
   const abrirModalEditar = (producto) => {
@@ -155,6 +197,8 @@ const abrirModalCrear = () => {
       stock: producto.stock,
       pausado: producto.pausado,
     });
+    setImagenesSeleccionadas([]);
+    setImagenesPreview([]);
     setModalAbierto(true);
   };
 
@@ -199,6 +243,11 @@ const abrirModalCrear = () => {
         );
 
         if (response.data.success) {
+          // Si hay imágenes nuevas, subirlas
+          if (imagenesSeleccionadas.length > 0) {
+            await subirImagenes(productoEditando.id_producto);
+          }
+
           setExito("Producto actualizado con éxito");
           await cargarProductos();
           cerrarModal();
@@ -217,6 +266,13 @@ const abrirModalCrear = () => {
         );
 
         if (response.data.success) {
+          const idProducto = response.data.id_producto;
+
+          // Subir imágenes si hay
+          if (imagenesSeleccionadas.length > 0) {
+            await subirImagenes(idProducto);
+          }
+
           setExito("Producto creado con éxito");
           await cargarProductos();
           cerrarModal();
@@ -226,6 +282,36 @@ const abrirModalCrear = () => {
     } catch (error) {
       console.error("Error al guardar producto:", error);
       setError(error.response?.data?.error || "Error al guardar el producto");
+    }
+  };
+
+  const subirImagenes = async (idProducto) => {
+    const token = localStorage.getItem("token");
+    const formDataImages = new FormData();
+
+    formDataImages.append("id_producto", idProducto);
+
+    imagenesSeleccionadas.forEach((imagen) => {
+      formDataImages.append("imagenes", imagen);
+    });
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/api/productos/imagenes/subir",
+        formDataImages,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (!response.data.success) {
+        console.error("Error al subir imágenes:", response.data.error);
+      }
+    } catch (error) {
+      console.error("Error al subir imágenes:", error);
     }
   };
 
@@ -432,7 +518,7 @@ const abrirModalCrear = () => {
         )}
       </div>
 
-      {/* MODAL - CAMBIADO A USAR LAS CLASES CORRECTAS */}
+      {/* MODAL */}
       {modalAbierto && (
         <div className="modal-overlay" onClick={cerrarModal}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -456,7 +542,7 @@ const abrirModalCrear = () => {
               )}
 
               <p style={{ color: "#6b7280", marginBottom: "1.5rem" }}>
-                Completa la información del producto según la base de datos
+                Completa la información del producto
               </p>
 
               <form id="formProducto" onSubmit={handleSubmit}>
@@ -547,7 +633,6 @@ const abrirModalCrear = () => {
                       min="0"
                       required
                     />
-                    <span className="help-text">Formato: decimal(10,2)</span>
                   </div>
 
                   <div className="form-group">
@@ -565,6 +650,139 @@ const abrirModalCrear = () => {
                       min="0"
                       required
                     />
+                  </div>
+                  
+                  {/* SECCIÓN DE IMÁGENES */}
+                  <div className="form-group full-width">
+                    <label>
+                      <ImageIcon size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                      Imágenes del Producto (Máximo 5)
+                    </label>
+                    
+                    <div className="upload-images-container">
+                      <input
+                        type="file"
+                        id="imagenes-input"
+                        accept="image/jpeg,image/png,image/gif,image/webp"
+                        multiple
+                        onChange={handleImagenesChange}
+                        style={{ display: "none" }}
+                      />
+                      
+                      <label
+                        htmlFor="imagenes-input"
+                        className="btn-upload-images"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.5rem",
+                          padding: "1rem",
+                          border: "2px dashed #d1d5db",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          backgroundColor: "#f9fafb",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "#FFC107";
+                          e.currentTarget.style.backgroundColor = "#fffbeb";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = "#d1d5db";
+                          e.currentTarget.style.backgroundColor = "#f9fafb";
+                        }}
+                      >
+                        <Upload size={20} />
+                        <span>Seleccionar Imágenes</span>
+                      </label>
+
+                      {imagenesPreview.length > 0 && (
+                        <div
+                          className="preview-images-grid"
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                            gap: "0.75rem",
+                            marginTop: "1rem",
+                          }}
+                        >
+                          {imagenesPreview.map((preview, index) => (
+                            <div
+                              key={index}
+                              className="preview-image-item"
+                              style={{
+                                position: "relative",
+                                aspectRatio: "1",
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                border: "2px solid #e5e7eb",
+                              }}
+                            >
+                              <img
+                                src={preview}
+                                alt={`Preview ${index + 1}`}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => eliminarImagenPreview(index)}
+                                style={{
+                                  position: "absolute",
+                                  top: "4px",
+                                  right: "4px",
+                                  background: "#dc2626",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "50%",
+                                  width: "24px",
+                                  height: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  cursor: "pointer",
+                                  padding: 0,
+                                }}
+                              >
+                                <X size={14} />
+                              </button>
+                              {index === 0 && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    bottom: "4px",
+                                    left: "4px",
+                                    background: "#007BFF",
+                                    color: "white",
+                                    padding: "2px 6px",
+                                    borderRadius: "4px",
+                                    fontSize: "0.65rem",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Principal
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <p
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "#6b7280",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        Formatos: JPG, PNG, GIF, WEBP (máx. 5MB cada una). La
+                        primera imagen será la principal.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </form>

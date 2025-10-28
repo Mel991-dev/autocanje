@@ -1,6 +1,5 @@
 # models/producto_model.py
 from config.database import conexion
-
 def crear_producto(fk_vendedor, fk_categoria, fk_tipo_vehiculo, nombre_producto, 
                    descripcion, precio, stock, pausado=False):
     """
@@ -375,21 +374,23 @@ def obtener_productos_catalogo(filtros=None):
         
         # Aplicar filtros
         if filtros:
-            # Búsqueda por nombre o descripción
+# Búsqueda por nombre o descripción
             if filtros.get('busqueda'):
                 sql += " AND (p.nombre_producto LIKE %s OR p.descripcion LIKE %s)"
                 busqueda_param = f"%{filtros['busqueda']}%"
                 params.extend([busqueda_param, busqueda_param])
             
-            # Filtro por categoría
-            if filtros.get('categoria'):
-                sql += " AND p.fk_categoria = %s"
-                params.append(filtros['categoria'])
+            # Filtro por categorías múltiples
+            if filtros.get('categoria') and isinstance(filtros['categoria'], list) and len(filtros['categoria']) > 0:
+                placeholders = ','.join(['%s'] * len(filtros['categoria']))
+                sql += f" AND p.fk_categoria IN ({placeholders})"
+                params.extend(filtros['categoria'])
             
-            # Filtro por tipo de vehículo
-            if filtros.get('tipo_vehiculo'):
-                sql += " AND p.fk_tipo_vehiculo = %s"
-                params.append(filtros['tipo_vehiculo'])
+            # Filtro por tipos de vehículo múltiples
+            if filtros.get('tipo_vehiculo') and isinstance(filtros['tipo_vehiculo'], list) and len(filtros['tipo_vehiculo']) > 0:
+                placeholders = ','.join(['%s'] * len(filtros['tipo_vehiculo']))
+                sql += f" AND p.fk_tipo_vehiculo IN ({placeholders})"
+                params.extend(filtros['tipo_vehiculo'])
             
             # Filtro por rango de precio
             if filtros.get('precio_min') is not None:
@@ -483,6 +484,42 @@ def obtener_producto_detalle(id_producto):
         conn.close()
         return None
 
+# AGREGAR ESTA FUNCIÓN AL ARCHIVO producto_model.py
+
+def obtener_valoraciones_producto(id_producto):
+    """
+    Obtiene las valoraciones y comentarios de un producto (CA-4.3.3)
+    """
+    conn = conexion()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        sql = """
+            SELECT 
+                v.*,
+                u.primer_nombre,
+                u.primer_apellido,
+                DATE_FORMAT(v.fecha_valoracion, '%d de %M, %Y') as fecha_formateada
+            FROM valoracion v
+            LEFT JOIN usuario u ON v.fk_usuario = u.id_usuario
+            WHERE v.fk_producto = %s
+            ORDER BY v.fecha_valoracion DESC
+            LIMIT 10
+        """
+        
+        cursor.execute(sql, (id_producto,))
+        valoraciones = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return valoraciones
+        
+    except Exception as e:
+        print(f"Error al obtener valoraciones: {str(e)}")
+        cursor.close()
+        conn.close()
+        return []
 
 def obtener_estadisticas_catalogo():
     """

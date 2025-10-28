@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, SlidersHorizontal, ShoppingCart, Star, Search } from "lucide-react";
 import "../styles/catalogo.css";
 import Header from "../components/header";
@@ -7,6 +8,7 @@ import Footer from "../components/footer";
 const API_URL = "http://127.0.0.1:5000/api";
 
 const Catalogo = () => {
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [tiposVehiculo, setTiposVehiculo] = useState([]);
@@ -69,21 +71,32 @@ const Catalogo = () => {
 
     try {
       const params = new URLSearchParams();
+      // Búsqueda
       if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
+      // Categorías múltiples
       filtros.categoria.forEach((cat) => params.append("categoria[]", cat));
+
+      // Tipos de vehículo múltiples
       filtros.tipo_vehiculo.forEach((tipo) =>
         params.append("tipo_vehiculo[]", tipo)
       );
+      // Precios
       if (filtros.precio_min > 0)
         params.append("precio_min", filtros.precio_min);
       if (filtros.precio_max < 1000000)
         params.append("precio_max", filtros.precio_max);
+      // Valoración
       if (filtros.valoracion_min)
         params.append("valoracion_min", filtros.valoracion_min);
+
+      // Ordenamiento
       params.append("orden", filtros.orden);
+      console.log("🔍 Parámetros enviados:", params.toString()); // Debug
 
       const response = await fetch(`${API_URL}/catalogo?${params.toString()}`);
       const data = await response.json();
+
+      console.log("📦 Datos recibidos:", data); // Debug
 
       if (data.success) {
         setProductos(data.productos || []);
@@ -137,8 +150,13 @@ const Catalogo = () => {
     });
   };
 
-  const agregarAlCarrito = (producto) => {
+  const agregarAlCarrito = (e, producto) => {
+    e.stopPropagation();
     alert(`Producto "${producto.nombre_producto}" agregado al carrito`);
+  };
+
+  const verProducto = (idProducto) => {
+    navigate(`/producto/${idProducto}`);
   };
 
   const formatPrice = (price) => {
@@ -331,7 +349,8 @@ const Catalogo = () => {
           ) : (
             <div className="products-grid">
               {productos.map((producto) => (
-                <div key={producto.id_producto} className="product-card">
+                <div key={producto.id_producto} className="product-card" onClick={() => verProducto(producto.id_producto)}>
+                  
                   <div className="product-image">
                     <img
                       src={
@@ -362,10 +381,7 @@ const Catalogo = () => {
                     </div>
                     <button
                       className="btn-add-cart"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        agregarAlCarrito(producto);
-                      }}
+                      onClick={(e) => agregarAlCarrito(e, producto)}
                     >
                       <ShoppingCart size={18} />
                       Agregar al Carrito

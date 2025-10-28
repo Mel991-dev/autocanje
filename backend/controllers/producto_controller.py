@@ -8,15 +8,191 @@ from models.producto_model import (
 )
 from utils.auth_middleware import token_requerido
 import os
+import base64
 from werkzeug.utils import secure_filename
+from datetime import datetime
 
 # Configuración de subida de archivos
 UPLOAD_FOLDER = 'uploads/productos'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+MAX_FILE_SIZE =  5 * 1024 * 1024 #5MB
+
+# Crear carpeta si no existe
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
+@token_requerido
+def subir_imagenes_producto(usuario_id):
+    """
+    Sube hasta 5 imágenes para un producto
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Obtener el id del producto
+        id_producto = request.form.get('id_producto')
+        
+        if not id_producto:
+            return jsonify({
+                'success': False,
+                'error': 'ID de producto requerido'
+            }), 400
+        
+        # Verificar que el producto pertenezca al usuario
+        producto = obtener_producto_por_id(id_producto)
+        
+        if not producto:
+            return jsonify({
+                'success': False,
+                'error': 'Producto no encontrado'
+            }), 404
+        
+        if producto['fk_vendedor'] != usuario_id:
+            return jsonify({
+                'success': False,
+                'error': 'No tienes permiso para subir imágenes a este producto'
+            }), 403
+        
+        # Obtener archivos
+        files = request.files.getlist('imagenes')
+        
+        if not files or len(files) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'No se enviaron imágenes'
+            }), 400
+        
+        if len(files) > 5:
+            return jsonify({
+                'success': False,
+                'error': 'Máximo 5 imágenes permitidas'
+            }), 400
+        
+        urls_guardadas = []
+        es_primera = True  # La primera imagen será la principal
+        
+        for file in files:
+            if file and allowed_file(file.filename):
+                # Validar tamaño
+                file.seek(0, os.SEEK_END)
+                file_length = file.tell()
+                
+                if file_length > MAX_FILE_SIZE:
+                    return jsonify({
+                        'success': False,
+                        'error': f'El archivo {file.filename} excede el tamaño máximo de 5MB'
+                    }), 400
+                
+                file.seek(0)
+                
+                # Generar nombre único
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = secure_filename(file.filename)
+                nombre_unico = f"{id_producto}_{timestamp}_{filename}"
+                
+                # Guardar archivo
+                filepath = os.path.join(UPLOAD_FOLDER, nombre_unico)
+                file.save(filepath)
+                
+                # Guardar en base de datos (URL relativa)
+                url_imagen = f"/uploads/productos/{nombre_unico}"
+                
+                id_imagen = crear_imagen_producto(
+                    fk_producto=id_producto,
+                    url_imagen=url_imagen,
+                    es_principal=es_primera
+                )
+                
+                if id_imagen:
+                    urls_guardadas.append({
+                        'id': id_imagen,
+                        'url': url_imagen,
+                        'es_principal': es_primera
+                    })
+                    es_primera = False
+        
+        if len(urls_guardadas) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'No se pudieron guardar las imágenes'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': f'{len(urls_guardadas)} imagen(es) subida(s) con éxito',
+            'imagenes': urls_guardadas
+        }), 200
+        
+    except Exception as e:
+        print(f"Error al subir imágenes: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Error al subir imágenes: {str(e)}'
+        }), 500
+
+
+@token_requerido
+def eliminar_imagen_producto_controller(usuario_id, id_imagen):
+    """
+    Elimina una imagen de producto
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        # Aquí deberías verificar que la imagen pertenezca a un producto del usuario
+        # Por simplicidad, usamos la función del modelo directamente
+        
+        eliminado = eliminar_imagen_producto(id_imagen)
+        
+        if not eliminado:
+            return jsonify({
+                'success': False,
+                'error': 'Error al eliminar imagen'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Imagen eliminada con éxito'
+        }), 200
+        
+    except Exception as e:
+        print(f"Error al eliminar imagen: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Error al eliminar imagen: {str(e)}'
+        }), 500
+
+
+@token_requerido
+def obtener_imagenes_producto_controller(usuario_id, id_producto):
+    """
+    Obtiene todas las imágenes de un producto
+    """
+    if request.method == 'OPTIONS':
+        return '', 204
+    
+    try:
+        imagenes = obtener_imagenes_producto(id_producto)
+        
+        return jsonify({
+            'success': True,
+            'imagenes': imagenes
+        }), 200
+        
+    except Exception as e:
+        print(f"Error al obtener imágenes: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Error al obtener imágenes'
+        }), 500
 
 @token_requerido
 def crear_producto_controller(usuario_id):

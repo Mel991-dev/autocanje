@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, SlidersHorizontal, ShoppingCart, Star, Search } from "lucide-react";
+import { X, SlidersHorizontal, ShoppingCart, Star, Search, Package } from "lucide-react";
 import "../styles/catalogo.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -43,15 +43,10 @@ const Catalogo = () => {
 
       const categoriasData = await categoriasRes.json();
       const tiposData = await tiposRes.json();
-      console.log("Datos de categorías:", categoriasData);
-      console.log("Datos de tipos de vehículo:", tiposData);
 
-      // Ajuste para manejar la clave 'tipos_vehiculo'
       setCategorias(
         categoriasData.categorias ||
-          (categoriasData.success
-            ? categoriasData.categorias
-            : categoriasData) ||
+          (categoriasData.success ? categoriasData.categorias : categoriasData) ||
           []
       );
       setTiposVehiculo(
@@ -71,32 +66,17 @@ const Catalogo = () => {
 
     try {
       const params = new URLSearchParams();
-      // Búsqueda
       if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
-      // Categorías múltiples
       filtros.categoria.forEach((cat) => params.append("categoria[]", cat));
-
-      // Tipos de vehículo múltiples
-      filtros.tipo_vehiculo.forEach((tipo) =>
-        params.append("tipo_vehiculo[]", tipo)
-      );
-      // Precios
-      if (filtros.precio_min > 0)
-        params.append("precio_min", filtros.precio_min);
-      if (filtros.precio_max < 1000000)
-        params.append("precio_max", filtros.precio_max);
-      // Valoración
-      if (filtros.valoracion_min)
-        params.append("valoracion_min", filtros.valoracion_min);
-
-      // Ordenamiento
+      filtros.tipo_vehiculo.forEach((tipo) => params.append("tipo_vehiculo[]", tipo));
+      
+      if (filtros.precio_min > 0) params.append("precio_min", filtros.precio_min);
+      if (filtros.precio_max < 1000000) params.append("precio_max", filtros.precio_max);
+      if (filtros.valoracion_min) params.append("valoracion_min", filtros.valoracion_min);
       params.append("orden", filtros.orden);
-      console.log("🔍 Parámetros enviados:", params.toString()); // Debug
 
       const response = await fetch(`${API_URL}/catalogo?${params.toString()}`);
       const data = await response.json();
-
-      console.log("📦 Datos recibidos:", data); // Debug
 
       if (data.success) {
         setProductos(data.productos || []);
@@ -126,7 +106,6 @@ const Catalogo = () => {
         campo === "precio_max" ||
         campo === "valoracion_min"
       ) {
-        // Campos con valores únicos
         return { ...prev, [campo]: valor };
       }
       const currentValues = prev[campo] || [];
@@ -167,6 +146,39 @@ const Catalogo = () => {
     }).format(price);
   };
 
+  // ✅ Componente para renderizar imagen con fallback
+  const ProductImage = ({ src, alt }) => {
+    const [imageError, setImageError] = useState(false);
+
+    if (!src || imageError) {
+      return (
+        <div style={{
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#9ca3af',
+          gap: '0.5rem'
+        }}>
+          <Package size={48} strokeWidth={1.5} />
+          <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Sin Imagen</span>
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        onError={() => setImageError(true)}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+    );
+  };
+
   const FiltersSection = ({ isMobile = false }) => (
     <div className="filters-content">
       <div className="filter-section">
@@ -191,15 +203,13 @@ const Catalogo = () => {
                 <input
                   type="checkbox"
                   checked={filtros.categoria.includes(cat.id_categoria)}
-                  onChange={() =>
-                    handleFiltroChange("categoria", cat.id_categoria)
-                  }
+                  onChange={() => handleFiltroChange("categoria", cat.id_categoria)}
                 />
                 <span>{cat.nombre}</span>
               </label>
             ))
           ) : (
-            <p>No se cargaron categorías. Revisa la consola.</p>
+            <p>No se cargaron categorías.</p>
           )}
         </div>
       </div>
@@ -213,15 +223,13 @@ const Catalogo = () => {
                 <input
                   type="checkbox"
                   checked={filtros.tipo_vehiculo.includes(tipo.id_tipo)}
-                  onChange={() =>
-                    handleFiltroChange("tipo_vehiculo", tipo.id_tipo)
-                  }
+                  onChange={() => handleFiltroChange("tipo_vehiculo", tipo.id_tipo)}
                 />
                 <span>{tipo.nombre}</span>
               </label>
             ))
           ) : (
-            <p>No se cargaron tipos de vehículo. Revisa la consola.</p>
+            <p>No se cargaron tipos de vehículo.</p>
           )}
         </div>
       </div>
@@ -233,9 +241,7 @@ const Catalogo = () => {
             type="number"
             placeholder="Mín"
             value={filtros.precio_min}
-            onChange={(e) =>
-              handleFiltroChange("precio_min", parseInt(e.target.value) || 0)
-            }
+            onChange={(e) => handleFiltroChange("precio_min", parseInt(e.target.value) || 0)}
             className="price-input"
           />
           <span>-</span>
@@ -243,12 +249,7 @@ const Catalogo = () => {
             type="number"
             placeholder="Máx"
             value={filtros.precio_max}
-            onChange={(e) =>
-              handleFiltroChange(
-                "precio_max",
-                parseInt(e.target.value) || 1000000
-              )
-            }
+            onChange={(e) => handleFiltroChange("precio_max", parseInt(e.target.value) || 1000000)}
             className="price-input"
           />
         </div>
@@ -294,7 +295,6 @@ const Catalogo = () => {
       </div>
 
       <div className="catalog-layout">
-        {/* Sidebar Desktop */}
         <aside className="sidebar">
           <div className="filters-card">
             <div className="filters-header">
@@ -305,9 +305,7 @@ const Catalogo = () => {
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="main-content">
-          {/* Toolbar */}
           <div className="toolbar">
             <div className="toolbar-left">
               <button
@@ -318,9 +316,7 @@ const Catalogo = () => {
                 Filtros
               </button>
               <span className="product-count">
-                {loading
-                  ? "Cargando..."
-                  : `Mostrando ${productos.length} productos`}
+                {loading ? "Cargando..." : `Mostrando ${productos.length} productos`}
               </span>
             </div>
 
@@ -337,7 +333,6 @@ const Catalogo = () => {
             </select>
           </div>
 
-          {/* Products Grid */}
           {loading ? (
             <div className="loading">Cargando productos...</div>
           ) : error ? (
@@ -349,14 +344,14 @@ const Catalogo = () => {
           ) : (
             <div className="products-grid">
               {productos.map((producto) => (
-                <div key={producto.id_producto} className="product-card" onClick={() => verProducto(producto.id_producto)}>
-                  
+                <div 
+                  key={producto.id_producto} 
+                  className="product-card" 
+                  onClick={() => verProducto(producto.id_producto)}
+                >
                   <div className="product-image">
-                    <img
-                      src={
-                        producto.imagen_principal ||
-                        "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=400&fit=crop"
-                      }
+                    <ProductImage 
+                      src={producto.imagen_principal} 
                       alt={producto.nombre_producto}
                     />
                   </div>
@@ -394,11 +389,8 @@ const Catalogo = () => {
         </main>
       </div>
 
-      {/* Mobile Sidebar */}
       <div
-        className={`mobile-sidebar-overlay ${
-          mobileSidebarOpen ? "active" : ""
-        }`}
+        className={`mobile-sidebar-overlay ${mobileSidebarOpen ? "active" : ""}`}
         onClick={() => setMobileSidebarOpen(false)}
       />
       <aside className={`mobile-sidebar ${mobileSidebarOpen ? "active" : ""}`}>

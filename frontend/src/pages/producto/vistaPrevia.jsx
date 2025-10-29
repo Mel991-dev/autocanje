@@ -14,6 +14,7 @@ import {
   Clock,
   Star,
   Loader,
+  Image as ImageIcon,
 } from "lucide-react";
 import "../../styles/producto/vistaprevia.css";
 import Header from "../../components/header";
@@ -25,7 +26,6 @@ const VistaPrevia = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  // Estados del componente
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,6 @@ const VistaPrevia = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Cargar producto al montar
   useEffect(() => {
     cargarProducto();
   }, [id]);
@@ -125,6 +124,43 @@ const VistaPrevia = () => {
     return Math.min((stock / maxStock) * 100, 100);
   };
 
+  // ✅ Componente para renderizar imagen con fallback mejorado
+  const ProductImageWithFallback = ({ src, alt, className = "" }) => {
+    const [imageError, setImageError] = useState(false);
+
+    if (!src || imageError) {
+      return (
+        <div 
+          className={className}
+          style={{
+            width: '100%',
+            height: '100%',
+            background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#9ca3af',
+            gap: '1rem'
+          }}
+        >
+          <ImageIcon size={64} strokeWidth={1.5} />
+          <span style={{ fontSize: '1rem', fontWeight: '500' }}>Sin Imagen Disponible</span>
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        onError={() => setImageError(true)}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      />
+    );
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -155,12 +191,12 @@ const VistaPrevia = () => {
     );
   }
 
-  // Datos del producto
+  // ✅ Procesar imágenes con fallback
   const imagenes = producto.imagenes && producto.imagenes.length > 0 
     ? producto.imagenes 
-    : [{ url_imagen: "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&h=600&fit=crop" }];
+    : null; // Si no hay imágenes, será null
 
-  const descuento = calcularDescuento(producto.precio, producto.precio * 1.33); // Precio original estimado
+  const descuento = calcularDescuento(producto.precio, producto.precio * 1.33);
   const stockPercentage = calcularStockPercentage(producto.stock);
 
   const beneficios = [
@@ -206,12 +242,17 @@ const VistaPrevia = () => {
         {/* Galería de imágenes */}
         <div className="product-images">
           <div className="main-image">
-            <img 
-              src={imagenes[activeImage]?.url_imagen || imagenes[0].url_imagen} 
-              alt={producto.nombre_producto} 
-            />
+            {imagenes ? (
+              <ProductImageWithFallback 
+                src={imagenes[activeImage]?.url_imagen || imagenes[0].url_imagen}
+                alt={producto.nombre_producto}
+              />
+            ) : (
+              <ProductImageWithFallback src={null} alt="Sin imagen" />
+            )}
           </div>
-          {imagenes.length > 1 && (
+          
+          {imagenes && imagenes.length > 1 && (
             <div className="thumbnail-grid">
               {imagenes.map((imagen, index) => (
                 <div
@@ -219,7 +260,10 @@ const VistaPrevia = () => {
                   className={`thumbnail ${activeImage === index ? "active" : ""}`}
                   onClick={() => handleImageChange(index)}
                 >
-                  <img src={imagen.url_imagen} alt={`Vista ${index + 1}`} />
+                  <ProductImageWithFallback 
+                    src={imagen.url_imagen}
+                    alt={`Vista ${index + 1}`}
+                  />
                 </div>
               ))}
             </div>
@@ -228,7 +272,6 @@ const VistaPrevia = () => {
 
         {/* Información del producto */}
         <div className="product-info">
-          {/* Header del producto */}
           <div className="product-header">
             <div>
               <span className="category-badge">{producto.nombre_categoria}</span>
@@ -246,7 +289,6 @@ const VistaPrevia = () => {
               </div>
             </div>
 
-            {/* Botones de acción */}
             <div className="action-buttons">
               <button
                 className="btn-icon"
@@ -265,7 +307,6 @@ const VistaPrevia = () => {
             </div>
           </div>
 
-          {/* Sección de precio */}
           <div className="price-section">
             <div className="price-row">
               <span className="current-price">
@@ -283,7 +324,6 @@ const VistaPrevia = () => {
             <p className="price-note">Precio incluye IVA</p>
           </div>
 
-          {/* Sección de stock */}
           <div className="stock-section">
             <div className="stock-status">
               <CheckCircle size={20} color="#16a34a" />
@@ -303,7 +343,6 @@ const VistaPrevia = () => {
             )}
           </div>
 
-          {/* Control de cantidad */}
           {producto.stock > 0 && (
             <div className="quantity-section">
               <label className="quantity-label">Cantidad</label>
@@ -327,7 +366,6 @@ const VistaPrevia = () => {
             </div>
           )}
 
-          {/* Botones de acción principales */}
           <div className="actions">
             <button 
               className="btn btn-primary" 
@@ -354,7 +392,6 @@ const VistaPrevia = () => {
             </button>
           </div>
 
-          {/* Beneficios */}
           <div className="benefits-card">
             {beneficios.map((beneficio, index) => {
               const IconComponent = beneficio.icon;
@@ -374,13 +411,11 @@ const VistaPrevia = () => {
         </div>
       </div>
 
-      {/* Tabs (Descripción y Reseñas) */}
+      {/* Tabs */}
       <div className="tabs">
         <div className="tabs-list">
           <button
-            className={`tab-button ${
-              activeTab === "description" ? "active" : ""
-            }`}
+            className={`tab-button ${activeTab === "description" ? "active" : ""}`}
             onClick={() => handleTabChange("description")}
           >
             Descripción
@@ -393,7 +428,6 @@ const VistaPrevia = () => {
           </button>
         </div>
 
-        {/* Tab de Descripción */}
         {activeTab === "description" && (
           <div className="tab-content">
             <div className="description-card">
@@ -402,7 +436,6 @@ const VistaPrevia = () => {
                 {producto.descripcion || "Sin descripción disponible"}
               </div>
               
-              {/* Información adicional */}
               <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
                 <div>
                   <strong>Categoría:</strong> {producto.nombre_categoria}
@@ -421,13 +454,10 @@ const VistaPrevia = () => {
           </div>
         )}
 
-        {/* Tab de Reseñas */}
         {activeTab === "reviews" && (
           <div className="tab-content">
             <div className="description-card">
               <h2 className="description-title">Reseñas de Clientes</h2>
-
-              {/* Header de reseñas */}
               <div className="reviews-header">
                 <div className="reviews-score">
                   <div className="big-rating">
@@ -441,7 +471,6 @@ const VistaPrevia = () => {
                   </div>
                 </div>
 
-                {/* Desglose de ratings */}
                 <div className="reviews-breakdown">
                   {[5, 4, 3, 2, 1].map((stars) => (
                     <div key={stars} className="breakdown-row">
@@ -460,7 +489,6 @@ const VistaPrevia = () => {
                 </div>
               </div>
 
-              {/* Lista de reseñas */}
               <div className="reviews-list">
                 {producto.valoraciones_detalle && producto.valoraciones_detalle.length > 0 ? (
                   producto.valoraciones_detalle.map((review) => (
@@ -484,9 +512,7 @@ const VistaPrevia = () => {
                         </div>
                       </div>
                       <p className="review-text">{review.comentario}</p>
-                      <button className="review-helpful">
-                        Útil (0)
-                      </button>
+                      <button className="review-helpful">Útil (0)</button>
                     </div>
                   ))
                 ) : (
@@ -512,11 +538,17 @@ const VistaPrevia = () => {
               <div 
                 key={prod.id_producto} 
                 className="product-card"
-                onClick={() => navigate(`/producto/${prod.id_producto}`)}
+                onClick={() => {
+                  setActiveImage(0);
+                  navigate(`/producto/${prod.id_producto}`);
+                }}
                 style={{ cursor: "pointer" }}
               >
                 <div className="product-image">
-                  <img src={prod.imagen_principal || "https://via.placeholder.com/300"} alt={prod.nombre_producto} />
+                  <ProductImageWithFallback 
+                    src={prod.imagen_principal}
+                    alt={prod.nombre_producto}
+                  />
                 </div>
                 <div className="product-info">
                   <span className="category-badge">{prod.nombre_categoria}</span>

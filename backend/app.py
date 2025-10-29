@@ -7,8 +7,18 @@ import os
 app = Flask(__name__)
 
 # Servir archivos estáticos (imágenes)
-@app.route('/uploads/<path:filename>')
+@app.route('/uploads/productos/<path:filename>')
 def uploaded_file(filename):
+    return send_from_directory('uploads/productos', filename)
+
+# AGREGAR: Endpoint alternativo para compatibilidad
+@app.route('/uploads/<path:filename>')
+def uploaded_file_legacy(filename):
+    """Endpoint de compatibilidad para rutas antiguas"""
+    # Primero intenta buscar en productos/
+    if os.path.exists(os.path.join('uploads/productos', filename)):
+        return send_from_directory('uploads/productos', filename)
+    # Si no, busca en la raíz de uploads/
     return send_from_directory('uploads', filename)
 
 @app.before_request

@@ -99,8 +99,8 @@ def subir_imagenes_producto(usuario_id):
                 filepath = os.path.join(UPLOAD_FOLDER, nombre_unico)
                 file.save(filepath)
                 
-                # Guardar en base de datos (URL relativa)
-                url_imagen = f"/uploads/productos/{nombre_unico}"
+                # ✅ MODIFICADO: Guardar URL completa con el dominio del backend
+                url_imagen = f"http://127.0.0.1:5000/uploads/productos/{nombre_unico}"
                 
                 id_imagen = crear_imagen_producto(
                     fk_producto=id_producto,
@@ -136,7 +136,6 @@ def subir_imagenes_producto(usuario_id):
             'success': False,
             'error': f'Error al subir imágenes: {str(e)}'
         }), 500
-
 
 @token_requerido
 def eliminar_imagen_producto_controller(usuario_id, id_imagen):

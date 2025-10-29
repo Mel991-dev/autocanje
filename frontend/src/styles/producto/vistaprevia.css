@@ -309,7 +309,10 @@
 .quantity-btn {
   width: 40px;
   height: 40px;
+  display: grid;
+  place-content: center;
   border: 1px solid #e5e7eb;
+  color: #374151;
   background: white;
   border-radius: 6px;
   cursor: pointer;

@@ -209,6 +209,7 @@
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .price-row {
@@ -253,6 +254,7 @@
    ============================================ */
 
 .stock-section {
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -288,6 +290,7 @@
    ============================================ */
 
 .quantity-section {
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -349,6 +352,7 @@
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Estilos base de botones */
@@ -387,19 +391,19 @@
 }
 
 .btn-secondary:hover {
-  border-color: #007bff;
-  color: #007bff;
+  border-color: #ffc107;
+  background-color: #ffc107;
 }
 
 /* Botón premium (Reservar) */
 .btn-premium {
-  background: white;
+  background: rgb(255, 251, 251);
   border: 2px solid #ffc107;
   color: #1a1a1a;
 }
 
 .btn-premium:hover {
-  background: #fffbeb;
+  background: #ffc107;
 }
 
 /* ============================================
@@ -411,6 +415,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Item individual de beneficio */

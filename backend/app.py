@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory
 from routes.auth_routes import auth_bp
 from routes.producto_routes import producto_bp
 from routes.catalogo_routes import catalogo_bp
+from routes.carrito_routes import carrito_bp
 import os
 
 app = Flask(__name__)
@@ -42,6 +43,7 @@ def after_request(response):
 app.register_blueprint(auth_bp)
 app.register_blueprint(producto_bp)
 app.register_blueprint(catalogo_bp)
+app.register_blueprint(carrito_bp)
 
 if __name__ == "__main__":
     # Crear carpeta de uploads si no existe

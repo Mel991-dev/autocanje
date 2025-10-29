@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, SlidersHorizontal, ShoppingCart, Star, Search, Package } from "lucide-react";
+import axios from "axios";
+import {
+  X,
+  SlidersHorizontal,
+  ShoppingCart,
+  Star,
+  Search,
+  Package,
+} from "lucide-react";
 import "../styles/catalogo.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -15,6 +23,8 @@ const Catalogo = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [agregandoCarrito, setAgregandoCarrito] = useState({});
+  const [mensajesCarrito, setMensajesCarrito] = useState({});
 
   const [filtros, setFiltros] = useState({
     busqueda: "",
@@ -46,7 +56,9 @@ const Catalogo = () => {
 
       setCategorias(
         categoriasData.categorias ||
-          (categoriasData.success ? categoriasData.categorias : categoriasData) ||
+          (categoriasData.success
+            ? categoriasData.categorias
+            : categoriasData) ||
           []
       );
       setTiposVehiculo(
@@ -68,11 +80,16 @@ const Catalogo = () => {
       const params = new URLSearchParams();
       if (filtros.busqueda) params.append("busqueda", filtros.busqueda);
       filtros.categoria.forEach((cat) => params.append("categoria[]", cat));
-      filtros.tipo_vehiculo.forEach((tipo) => params.append("tipo_vehiculo[]", tipo));
-      
-      if (filtros.precio_min > 0) params.append("precio_min", filtros.precio_min);
-      if (filtros.precio_max < 1000000) params.append("precio_max", filtros.precio_max);
-      if (filtros.valoracion_min) params.append("valoracion_min", filtros.valoracion_min);
+      filtros.tipo_vehiculo.forEach((tipo) =>
+        params.append("tipo_vehiculo[]", tipo)
+      );
+
+      if (filtros.precio_min > 0)
+        params.append("precio_min", filtros.precio_min);
+      if (filtros.precio_max < 1000000)
+        params.append("precio_max", filtros.precio_max);
+      if (filtros.valoracion_min)
+        params.append("valoracion_min", filtros.valoracion_min);
       params.append("orden", filtros.orden);
 
       const response = await fetch(`${API_URL}/catalogo?${params.toString()}`);
@@ -129,9 +146,69 @@ const Catalogo = () => {
     });
   };
 
-  const agregarAlCarrito = (e, producto) => {
+  // ✅ ACTUALIZADO: Agregar al carrito con backend
+  const agregarAlCarrito = async (e, producto) => {
     e.stopPropagation();
-    alert(`Producto "${producto.nombre_producto}" agregado al carrito`);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMensajesCarrito({
+        [producto.id_producto]: "Debes iniciar sesión",
+      });
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    setAgregandoCarrito((prev) => ({ ...prev, [producto.id_producto]: true }));
+    setMensajesCarrito((prev) => ({ ...prev, [producto.id_producto]: "" }));
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/carrito/agregar`,
+        {
+          fk_producto: producto.id_producto,
+          cantidad: 1, // Por defecto 1 desde el catálogo
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setMensajesCarrito((prev) => ({
+          ...prev,
+          [producto.id_producto]: "✓ Agregado",
+        }));
+
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => {
+          setMensajesCarrito((prev) => {
+            const newMessages = { ...prev };
+            delete newMessages[producto.id_producto];
+            return newMessages;
+          });
+        }, 3000);
+      } else {
+        setMensajesCarrito((prev) => ({
+          ...prev,
+          [producto.id_producto]: "✗ Error",
+        }));
+      }
+    } catch (err) {
+      console.error("Error al agregar al carrito:", err);
+      setMensajesCarrito((prev) => ({
+        ...prev,
+        [producto.id_producto]: "✗ Error al agregar",
+      }));
+    } finally {
+      setAgregandoCarrito((prev) => ({
+        ...prev,
+        [producto.id_producto]: false,
+      }));
+    }
   };
 
   const verProducto = (idProducto) => {
@@ -152,19 +229,23 @@ const Catalogo = () => {
 
     if (!src || imageError) {
       return (
-        <div style={{
-          width: '100%',
-          height: '100%',
-          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#9ca3af',
-          gap: '0.5rem'
-        }}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#9ca3af",
+            gap: "0.5rem",
+          }}
+        >
           <Package size={48} strokeWidth={1.5} />
-          <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Sin Imagen</span>
+          <span style={{ fontSize: "0.875rem", fontWeight: "500" }}>
+            Sin Imagen
+          </span>
         </div>
       );
     }
@@ -174,7 +255,7 @@ const Catalogo = () => {
         src={src}
         alt={alt}
         onError={() => setImageError(true)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
   };
@@ -203,7 +284,9 @@ const Catalogo = () => {
                 <input
                   type="checkbox"
                   checked={filtros.categoria.includes(cat.id_categoria)}
-                  onChange={() => handleFiltroChange("categoria", cat.id_categoria)}
+                  onChange={() =>
+                    handleFiltroChange("categoria", cat.id_categoria)
+                  }
                 />
                 <span>{cat.nombre}</span>
               </label>
@@ -223,7 +306,9 @@ const Catalogo = () => {
                 <input
                   type="checkbox"
                   checked={filtros.tipo_vehiculo.includes(tipo.id_tipo)}
-                  onChange={() => handleFiltroChange("tipo_vehiculo", tipo.id_tipo)}
+                  onChange={() =>
+                    handleFiltroChange("tipo_vehiculo", tipo.id_tipo)
+                  }
                 />
                 <span>{tipo.nombre}</span>
               </label>
@@ -241,7 +326,9 @@ const Catalogo = () => {
             type="number"
             placeholder="Mín"
             value={filtros.precio_min}
-            onChange={(e) => handleFiltroChange("precio_min", parseInt(e.target.value) || 0)}
+            onChange={(e) =>
+              handleFiltroChange("precio_min", parseInt(e.target.value) || 0)
+            }
             className="price-input"
           />
           <span>-</span>
@@ -249,7 +336,12 @@ const Catalogo = () => {
             type="number"
             placeholder="Máx"
             value={filtros.precio_max}
-            onChange={(e) => handleFiltroChange("precio_max", parseInt(e.target.value) || 1000000)}
+            onChange={(e) =>
+              handleFiltroChange(
+                "precio_max",
+                parseInt(e.target.value) || 1000000
+              )
+            }
             className="price-input"
           />
         </div>
@@ -316,7 +408,9 @@ const Catalogo = () => {
                 Filtros
               </button>
               <span className="product-count">
-                {loading ? "Cargando..." : `Mostrando ${productos.length} productos`}
+                {loading
+                  ? "Cargando..."
+                  : `Mostrando ${productos.length} productos`}
               </span>
             </div>
 
@@ -344,14 +438,14 @@ const Catalogo = () => {
           ) : (
             <div className="products-grid">
               {productos.map((producto) => (
-                <div 
-                  key={producto.id_producto} 
-                  className="product-card" 
+                <div
+                  key={producto.id_producto}
+                  className="product-card"
                   onClick={() => verProducto(producto.id_producto)}
                 >
                   <div className="product-image">
-                    <ProductImage 
-                      src={producto.imagen_principal} 
+                    <ProductImage
+                      src={producto.imagen_principal}
                       alt={producto.nombre_producto}
                     />
                   </div>
@@ -374,6 +468,19 @@ const Catalogo = () => {
                         {formatPrice(producto.precio)}
                       </span>
                     </div>
+                    {/* ✅ MENSAJE DE FEEDBACK */}
+                    {mensajesCarrito[producto.id_producto] && (
+                      <div
+                        className={`mensaje-carrito-catalogo ${
+                          mensajesCarrito[producto.id_producto].includes("✓")
+                            ? "Producto añadido al carrito"
+                            : "error"
+                        }`}
+                      >
+                        {mensajesCarrito[producto.id_producto]}
+                      </div>
+                    )}
+
                     <button
                       className="btn-add-cart"
                       onClick={(e) => agregarAlCarrito(e, producto)}
@@ -390,7 +497,9 @@ const Catalogo = () => {
       </div>
 
       <div
-        className={`mobile-sidebar-overlay ${mobileSidebarOpen ? "active" : ""}`}
+        className={`mobile-sidebar-overlay ${
+          mobileSidebarOpen ? "active" : ""
+        }`}
         onClick={() => setMobileSidebarOpen(false)}
       />
       <aside className={`mobile-sidebar ${mobileSidebarOpen ? "active" : ""}`}>

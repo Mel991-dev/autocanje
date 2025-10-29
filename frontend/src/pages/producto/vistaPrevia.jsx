@@ -25,16 +25,20 @@ const API_URL = "http://127.0.0.1:5000/api";
 const VistaPrevia = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [producto, setProducto] = useState(null);
   const [relacionados, setRelacionados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [isFavorite, setIsFavorite] = useState(false);
+
+  // Agregar estados de agregar al carrito agregar al carrito
+  const [agregandoCarrito, setAgregandoCarrito] = useState(false);
+  const [mensajeCarrito, setMensajeCarrito] = useState("");
 
   useEffect(() => {
     cargarProducto();
@@ -46,7 +50,7 @@ const VistaPrevia = () => {
 
     try {
       const response = await axios.get(`${API_URL}/catalogo/${id}`);
-      
+
       if (response.data.success) {
         setProducto(response.data.producto);
         setRelacionados(response.data.relacionados || []);
@@ -76,18 +80,68 @@ const VistaPrevia = () => {
     setActiveTab(tab);
   };
 
-  const handleAddToCart = () => {
-    console.log("Agregado al carrito:", { productId: producto.id_producto, quantity });
-    alert(`Agregado al carrito: ${quantity} unidad(es)`);
+  //Agregar al carrito con backend
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMensajeCarrito("Debes iniciar sesión para agregar al carrito");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    setAgregandoCarrito(true);
+    setMensajeCarrito("");
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/carrito/agregar`,
+        {
+          fk_producto: producto.id_producto,
+          cantidad: quantity,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setMensajeCarrito(`✓ ${quantity} producto(s) agregado(s) al carrito`);
+
+        // Resetear cantidad después de agregar
+        setTimeout(() => {
+          setQuantity(1);
+          setMensajeCarrito("");
+        }, 3000);
+      } else {
+        setMensajeCarrito(
+          `✗ ${response.data.error || "Error al agregar al carrito"}`
+        );
+      }
+    } catch (err) {
+      console.error("Error al agregar al carrito:", err);
+      setMensajeCarrito(
+        `✗ ${err.response?.data?.error || "Error al agregar al carrito"}`
+      );
+    } finally {
+      setAgregandoCarrito(false);
+    }
   };
 
-  const handleBuyNow = () => {
-    console.log("Compra directa:", { productId: producto.id_producto, quantity });
-    alert("Redirigiendo al checkout...");
+  const handleBuyNow = async () => {
+    // Primero agregar al carrito
+    await handleAddToCart();
+    // Luego redirigir al carrito
+    setTimeout(() => navigate("/carrito"), 1000);
   };
 
   const handleReserve = () => {
-    console.log("Producto reservado:", { productId: producto.id_producto, quantity });
+    console.log("Producto reservado:", {
+      productId: producto.id_producto,
+      quantity,
+    });
     alert("Producto reservado por 72 horas (Función Premium)");
   };
 
@@ -130,22 +184,24 @@ const VistaPrevia = () => {
 
     if (!src || imageError) {
       return (
-        <div 
+        <div
           className={className}
           style={{
-            width: '100%',
-            height: '100%',
-            background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#9ca3af',
-            gap: '1rem'
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#9ca3af",
+            gap: "1rem",
           }}
         >
           <ImageIcon size={64} strokeWidth={1.5} />
-          <span style={{ fontSize: '1rem', fontWeight: '500' }}>Sin Imagen Disponible</span>
+          <span style={{ fontSize: "1rem", fontWeight: "500" }}>
+            Sin Imagen Disponible
+          </span>
         </div>
       );
     }
@@ -156,7 +212,7 @@ const VistaPrevia = () => {
         alt={alt}
         className={className}
         onError={() => setImageError(true)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
     );
   };
@@ -166,8 +222,19 @@ const VistaPrevia = () => {
     return (
       <div className="vista-previa-container">
         <Header />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-          <Loader size={48} className="spinner" style={{ animation: "spin 1s linear infinite" }} />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "60vh",
+          }}
+        >
+          <Loader
+            size={48}
+            className="spinner"
+            style={{ animation: "spin 1s linear infinite" }}
+          />
         </div>
         <Footer />
       </div>
@@ -182,7 +249,10 @@ const VistaPrevia = () => {
         <div style={{ textAlign: "center", padding: "4rem 2rem" }}>
           <h2>Producto no encontrado</h2>
           <p style={{ color: "#6b7280", marginBottom: "2rem" }}>{error}</p>
-          <button className="btn btn-primary" onClick={() => navigate("/catalogo")}>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/catalogo")}
+          >
             Volver al Catálogo
           </button>
         </div>
@@ -192,9 +262,10 @@ const VistaPrevia = () => {
   }
 
   // ✅ Procesar imágenes con fallback
-  const imagenes = producto.imagenes && producto.imagenes.length > 0 
-    ? producto.imagenes 
-    : null; // Si no hay imágenes, será null
+  const imagenes =
+    producto.imagenes && producto.imagenes.length > 0
+      ? producto.imagenes
+      : null; // Si no hay imágenes, será null
 
   const descuento = calcularDescuento(producto.precio, producto.precio * 1.33);
   const stockPercentage = calcularStockPercentage(producto.stock);
@@ -225,14 +296,16 @@ const VistaPrevia = () => {
   return (
     <div className="vista-previa-container">
       <Header />
-      
+
       {/* Breadcrumb */}
       <nav className="breadcrumb">
         <a href="/">Inicio</a>
         <span>/</span>
         <a href="/catalogo">Catálogo</a>
         <span>/</span>
-        <a href={`/catalogo?categoria=${producto.fk_categoria}`}>{producto.nombre_categoria}</a>
+        <a href={`/catalogo?categoria=${producto.fk_categoria}`}>
+          {producto.nombre_categoria}
+        </a>
         <span>/</span>
         <span className="current">{producto.nombre_producto}</span>
       </nav>
@@ -243,24 +316,28 @@ const VistaPrevia = () => {
         <div className="product-images">
           <div className="main-image">
             {imagenes ? (
-              <ProductImageWithFallback 
-                src={imagenes[activeImage]?.url_imagen || imagenes[0].url_imagen}
+              <ProductImageWithFallback
+                src={
+                  imagenes[activeImage]?.url_imagen || imagenes[0].url_imagen
+                }
                 alt={producto.nombre_producto}
               />
             ) : (
               <ProductImageWithFallback src={null} alt="Sin imagen" />
             )}
           </div>
-          
+
           {imagenes && imagenes.length > 1 && (
             <div className="thumbnail-grid">
               {imagenes.map((imagen, index) => (
                 <div
                   key={index}
-                  className={`thumbnail ${activeImage === index ? "active" : ""}`}
+                  className={`thumbnail ${
+                    activeImage === index ? "active" : ""
+                  }`}
                   onClick={() => handleImageChange(index)}
                 >
-                  <ProductImageWithFallback 
+                  <ProductImageWithFallback
                     src={imagen.url_imagen}
                     alt={`Vista ${index + 1}`}
                   />
@@ -271,10 +348,12 @@ const VistaPrevia = () => {
         </div>
 
         {/* Información del producto */}
-        <div className="product-info">
+        <div className="product-info info-catalogo">
           <div className="product-header">
             <div>
-              <span className="category-badge">{producto.nombre_categoria}</span>
+              <span className="category-badge">
+                {producto.nombre_categoria}
+              </span>
               <h1 className="product-title">{producto.nombre_producto}</h1>
               <div className="product-meta">
                 <div className="rating">
@@ -285,7 +364,10 @@ const VistaPrevia = () => {
                   <span>({producto.valoraciones || 0} reseñas)</span>
                 </div>
                 <span>|</span>
-                <span>Vendido por: {producto.vendedor_nombre} {producto.vendedor_apellido}</span>
+                <span>
+                  Vendido por: {producto.vendedor_nombre}{" "}
+                  {producto.vendedor_apellido}
+                </span>
               </div>
             </div>
 
@@ -328,8 +410,8 @@ const VistaPrevia = () => {
             <div className="stock-status">
               <CheckCircle size={20} color="#16a34a" />
               <span className="stock-text">
-                {producto.stock > 0 
-                  ? `Disponible - ${producto.stock} unidades` 
+                {producto.stock > 0
+                  ? `Disponible - ${producto.stock} unidades`
                   : "Sin stock disponible"}
               </span>
             </div>
@@ -363,27 +445,38 @@ const VistaPrevia = () => {
                   +
                 </button>
               </div>
+
+              {/* ✅ MENSAJE DE FEEDBACK */}
+              {mensajeCarrito && (
+                <div
+                  className={`mensaje-carrito ${
+                    mensajeCarrito.includes("✓") ? "Producto añadido al carrito" : "error"
+                  }`}
+                >
+                  {mensajeCarrito}
+                </div>
+              )}
             </div>
           )}
 
           <div className="actions">
-            <button 
-              className="btn btn-primary" 
+            <button
+              className="btn btn-primary agregar-carrito"
               onClick={handleAddToCart}
               disabled={producto.stock === 0}
             >
               <ShoppingCart size={20} />
               {producto.stock > 0 ? "Agregar al Carrito" : "Sin Stock"}
             </button>
-            <button 
-              className="btn btn-secondary" 
+            <button
+              className="btn btn-secondary"
               onClick={handleBuyNow}
               disabled={producto.stock === 0}
             >
               Comprar Ahora
             </button>
-            <button 
-              className="btn btn-premium" 
+            <button
+              className="btn btn-premium"
               onClick={handleReserve}
               disabled={producto.stock === 0}
             >
@@ -415,7 +508,9 @@ const VistaPrevia = () => {
       <div className="tabs">
         <div className="tabs-list">
           <button
-            className={`tab-button ${activeTab === "description" ? "active" : ""}`}
+            className={`tab-button ${
+              activeTab === "description" ? "active" : ""
+            }`}
             onClick={() => handleTabChange("description")}
           >
             Descripción
@@ -435,19 +530,29 @@ const VistaPrevia = () => {
               <div className="description-text">
                 {producto.descripcion || "Sin descripción disponible"}
               </div>
-              
-              <div style={{ marginTop: "2rem", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+
+              <div
+                style={{
+                  marginTop: "2rem",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "1rem",
+                }}
+              >
                 <div>
                   <strong>Categoría:</strong> {producto.nombre_categoria}
                 </div>
                 <div>
-                  <strong>Tipo de Vehículo:</strong> {producto.nombre_tipo_vehiculo || "No especificado"}
+                  <strong>Tipo de Vehículo:</strong>{" "}
+                  {producto.nombre_tipo_vehiculo || "No especificado"}
                 </div>
                 <div>
-                  <strong>Vendedor:</strong> {producto.vendedor_nombre} {producto.vendedor_apellido}
+                  <strong>Vendedor:</strong> {producto.vendedor_nombre}{" "}
+                  {producto.vendedor_apellido}
                 </div>
                 <div>
-                  <strong>Contacto:</strong> {producto.vendedor_telefono || "No disponible"}
+                  <strong>Contacto:</strong>{" "}
+                  {producto.vendedor_telefono || "No disponible"}
                 </div>
               </div>
             </div>
@@ -490,7 +595,8 @@ const VistaPrevia = () => {
               </div>
 
               <div className="reviews-list">
-                {producto.valoraciones_detalle && producto.valoraciones_detalle.length > 0 ? (
+                {producto.valoraciones_detalle &&
+                producto.valoraciones_detalle.length > 0 ? (
                   producto.valoraciones_detalle.map((review) => (
                     <div key={review.id_valoracion} className="review-item">
                       <div className="review-header">
@@ -516,7 +622,13 @@ const VistaPrevia = () => {
                     </div>
                   ))
                 ) : (
-                  <div style={{ textAlign: "center", padding: "3rem", color: "#6b7280" }}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "3rem",
+                      color: "#6b7280",
+                    }}
+                  >
                     <p>Aún no hay reseñas para este producto.</p>
                     <p>¡Sé el primero en opinar!</p>
                   </div>
@@ -530,13 +642,26 @@ const VistaPrevia = () => {
       {/* Productos relacionados */}
       {relacionados.length > 0 && (
         <div style={{ margin: "3rem 1rem" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              marginBottom: "1.5rem",
+            }}
+          >
             Productos Relacionados
           </h2>
-          <div className="products-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "1.5rem" }}>
+          <div
+            className="products-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
             {relacionados.map((prod) => (
-              <div 
-                key={prod.id_producto} 
+              <div
+                key={prod.id_producto}
                 className="product-card"
                 onClick={() => {
                   setActiveImage(0);
@@ -545,20 +670,26 @@ const VistaPrevia = () => {
                 style={{ cursor: "pointer" }}
               >
                 <div className="product-image">
-                  <ProductImageWithFallback 
+                  <ProductImageWithFallback
                     src={prod.imagen_principal}
                     alt={prod.nombre_producto}
                   />
                 </div>
                 <div className="product-info">
-                  <span className="category-badge">{prod.nombre_categoria}</span>
+                  <span className="category-badge">
+                    {prod.nombre_categoria}
+                  </span>
                   <h3 className="product-name">{prod.nombre_producto}</h3>
                   <div className="product-rating">
                     <Star size={14} fill="#FFC107" color="#FFC107" />
-                    <span className="rating-value">{prod.promedio_valoracion?.toFixed(1) || "N/A"}</span>
+                    <span className="rating-value">
+                      {prod.promedio_valoracion?.toFixed(1) || "N/A"}
+                    </span>
                   </div>
                   <div className="product-price">
-                    <span className="current-price">{formatPrice(prod.precio)}</span>
+                    <span className="current-price">
+                      {formatPrice(prod.precio)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -566,7 +697,7 @@ const VistaPrevia = () => {
           </div>
         </div>
       )}
-      
+
       <Footer />
     </div>
   );

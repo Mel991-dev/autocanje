@@ -11,6 +11,7 @@ import Home from "./pages/home";
 import Perfil from "./pages/users/perfil";
 import ProductosPanel from "./pages/vendedor/ProductosPanel";
 import Catalogo from "./pages/catalogo";
+import Carrito from "./pages/producto/Carrito";
 import VistaPrevia from "./pages/producto/vistaPrevia";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/productos" element={<ProductosPanel />} />
         <Route path="/catalogo" element={<Catalogo />} />
         <Route path="/producto/:id" element={<VistaPrevia />} />
+        <Route path="/carrito" element={<Carrito />} />
       </Routes>
     </Router>
   );

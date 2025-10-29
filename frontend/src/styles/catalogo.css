@@ -210,6 +210,7 @@
 .btn-filters-mobile {
   display: none;
   padding: 0.5rem 1rem;
+  color: #374151;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
@@ -389,6 +390,32 @@
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
 }
 
+/* ============================================
+   MENSAJES DE CARRITO EN CATÁLOGO
+   ============================================ */
+
+.mensaje-carrito-catalogo {
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.mensaje-carrito-catalogo.exito {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.mensaje-carrito-catalogo.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
 /* ================================================
    ESTADOS
    ================================================ */
@@ -402,6 +429,28 @@
 
 .error-message {
   color: #dc2626;
+}
+
+
+.btn-add-cart .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ================================================

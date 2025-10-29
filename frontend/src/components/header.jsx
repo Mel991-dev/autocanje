@@ -1,60 +1,108 @@
-import React, { useState, useEffect } from 'react';
-import { Search, ShoppingCart, Menu, X, User, LogOut, UserCircle } from 'lucide-react';
-import '../styles/components/header.css';
+// frontend/src/components/header.jsx
+
+import React, { useState, useEffect } from "react";
+import {
+  Search,
+  ShoppingCart,
+  Menu,
+  X,
+  User,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
+import "../styles/components/header.css";
+import axios from "axios";
+
+const API_URL = "http://127.0.0.1:5000/api";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // const [userMenuOpen, setUserMenuOpen] = useState(false); // <--- ELIMINADO
-  const [cartCount] = useState(3);
+  const [cartCount, setCartCount] = useState(0); // ✅ Contador dinámico
   const [usuario, setUsuario] = useState(null);
 
+  // ✅ Cargar datos del usuario al montar el componente
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const usuarioData = localStorage.getItem('usuario');
+    const token = localStorage.getItem("token");
+    const usuarioData = localStorage.getItem("usuario");
+
     if (token && usuarioData) {
       try {
         const user = JSON.parse(usuarioData);
         setUsuario(user);
+
+        // ✅ Si hay usuario autenticado, cargar el contador del carrito
+        cargarContadorCarrito(token);
       } catch (error) {
-        console.error('Error al parsear usuario:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
+        console.error("Error al parsear usuario:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuario");
       }
     }
   }, []);
 
-  const toggleMobileMenu = () => setMobileMenuOpen(prev => !prev);
-  // const toggleUserMenu = () => setUserMenuOpen(prev => !prev); // <--- ELIMINADO
+  // ✅ NUEVA FUNCIÓN: Obtener el número de productos en el carrito
+  const cargarContadorCarrito = async (token) => {
+    try {
+      const response = await axios.get(`${API_URL}/carrito/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  /* --- ELIMINADO ---
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (userMenuOpen && !e.target.closest('.user-menu-container')) {
-        setUserMenuOpen(false);
+      if (response.data.success) {
+        const totales = response.data.totales;
+        // total_productos es la suma de todas las cantidades (ej: 2 pastillas + 3 filtros = 5)
+        setCartCount(totales.total_productos || 0);
       }
+    } catch (error) {
+      console.error("Error al cargar contador del carrito:", error);
+      // Si hay error, dejamos el contador en 0
+      setCartCount(0);
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Actualizar el contador cuando se agrega un producto
+  const actualizarContadorCarrito = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      cargarContadorCarrito(token);
+    }
+  };
+
+  // ✅ Exponer la función para que otros componentes puedan actualizar el contador
+  useEffect(() => {
+    // Crear un evento personalizado para actualizar el carrito desde otros componentes
+    window.addEventListener("cartUpdated", actualizarContadorCarrito);
+
+    return () => {
+      window.removeEventListener("cartUpdated", actualizarContadorCarrito);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [userMenuOpen]);
-  */
+  }, []);
+
+  const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
 
   const handleSearch = (e) => {
     e.preventDefault();
     const query = e.target.search.value.trim();
-    if (query) console.log('Buscando:', query);
+    if (query) {
+      window.location.href = `/catalogo?busqueda=${encodeURIComponent(query)}`;
+    }
   };
 
-  const handleCartClick = () => console.log('Abriendo carrito');
+  const handleCartClick = () => {
+    window.location.href = "/carrito";
+  };
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
     setUsuario(null);
-    // setUserMenuOpen(false); // <--- ELIMINADO
-    window.location.href = '/';
+    setCartCount(0); // ✅ Resetear contador al cerrar sesión
+    window.location.href = "/";
   };
 
   const getNombreCompleto = () => {
-    if (!usuario) return '';
+    if (!usuario) return "";
     return `${usuario.primer_nombre} ${usuario.primer_apellido}`;
   };
 
@@ -85,17 +133,16 @@ const Header = () => {
 
         <div className="header-actions">
           <button
-            className="btn-base btn-icon-only btn-outlined cart-button relative"
+            className="btn-base btn-icon-only btn-outlined cart-button"
             onClick={handleCartClick}
             aria-label="Carrito de compras"
           >
             <ShoppingCart size={24} />
-            {cartCount > 0 && <span className="cart-badge absolute">{cartCount}</span>}
+            {/* ✅ ACTUALIZADO: Mostrar badge solo si hay productos */}
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
           </button>
 
           {usuario ? (
-            // --- INICIO DE CAMBIOS ---
-            // Se reemplaza el div .user-menu-container por botones directos
             <>
               <a
                 href="/perfil"
@@ -112,13 +159,18 @@ const Header = () => {
                 <LogOut size={24} />
               </button>
             </>
-            // --- FIN DE CAMBIOS ---
           ) : (
             <>
-              <a href="/login" className="btn-base btn-outlined text-sm btn-login">
+              <a
+                href="/login"
+                className="btn-base btn-outlined text-sm btn-login"
+              >
                 Iniciar Sesión
               </a>
-              <a href="/registro" className="btn-base btn-primary text-sm btn-register">
+              <a
+                href="/registro"
+                className="btn-base btn-primary text-sm btn-register"
+              >
                 Registrarse
               </a>
             </>
@@ -134,7 +186,6 @@ const Header = () => {
         </div>
       </div>
 
-      {/* El menú móvil no necesita cambios, ya que su lógica es independiente */}
       {mobileMenuOpen && (
         <div className="mobile-menu">
           <form className="mobile-search" onSubmit={handleSearch}>
@@ -155,11 +206,16 @@ const Header = () => {
                 <div className="mobile-user-info flex-center gap-lg">
                   <UserCircle size={32} />
                   <div className="user-info">
-                    <p className="text-semibold text-primary">{getNombreCompleto()}</p>
+                    <p className="text-semibold text-primary">
+                      {getNombreCompleto()}
+                    </p>
                     <p className="text-sm text-secondary">{usuario.email}</p>
                   </div>
                 </div>
-                <a href="/perfil" className="btn-base btn-outlined flex-center gap-md text-sm">
+                <a
+                  href="/perfil"
+                  className="btn-base btn-outlined flex-center gap-md text-sm"
+                >
                   <User size={18} /> Ver Perfil
                 </a>
                 <button

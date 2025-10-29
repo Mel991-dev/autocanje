@@ -156,58 +156,7 @@ def obtener_estadisticas_controller():
             'success': False,
             'error': 'Error al obtener estadísticas'
         }), 500
-
-def obtener_producto_detalle(id_producto):
-    """
-    Obtiene todos los detalles de un producto para la vista detallada
-    Incluye: información básica, vendedor, categoría, tipo vehículo e imágenes
-    """
-    conn = conexion()
-    cursor = conn.cursor(dictionary=True)
-    
-    try:
-        sql = """
-            SELECT 
-                p.*,
-                c.nombre as nombre_categoria,
-                c.descripcion as descripcion_categoria,
-                tv.nombre as nombre_tipo_vehiculo,
-                tv.descripcion as descripcion_tipo_vehiculo,
-                u.id_usuario as vendedor_id,
-                u.primer_nombre as vendedor_nombre,
-                u.primer_apellido as vendedor_apellido,
-                u.email as vendedor_email,
-                u.telefono as vendedor_telefono
-            FROM producto p
-            LEFT JOIN categoria c ON p.fk_categoria = c.id_categoria
-            LEFT JOIN tipo_vehiculo tv ON p.fk_tipo_vehiculo = tv.id_tipo
-            LEFT JOIN usuario u ON p.fk_vendedor = u.id_usuario
-            WHERE p.id_producto = %s AND p.pausado = 0
-        """
         
-        cursor.execute(sql, (id_producto,))
-        producto = cursor.fetchone()
-        
-        if producto:
-            # Obtener imágenes del producto (CA-4.3.2)
-            imagenes = obtener_imagenes_producto(id_producto)
-            producto['imagenes'] = imagenes
-            
-            # Obtener valoraciones (CA-4.3.3)
-            valoraciones = obtener_valoraciones_producto(id_producto)
-            producto['valoraciones_detalle'] = valoraciones
-        
-        cursor.close()
-        conn.close()
-        
-        return producto
-        
-    except Exception as e:
-        print(f"Error al obtener detalle del producto: {str(e)}")
-        cursor.close()
-        conn.close()
-        return None
-
 def obtener_valoraciones_producto(id_producto):
     """
     Obtiene las valoraciones y comentarios de un producto (CA-4.3.3)

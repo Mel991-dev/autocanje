@@ -484,8 +484,9 @@
 }
 
 .tab-button.active {
-  color: #007bff;
+  color: white;
   border-bottom-color: #007bff;
+  transition: 0.3s ease-in-out;
 }
 
 /* ============================================
@@ -682,7 +683,7 @@
 .review-helpful:hover {
   background: #f9fafb;
   border-color: #007bff;
-  color: #007bff;
+  color: white;
 }
 
 /* ============================================

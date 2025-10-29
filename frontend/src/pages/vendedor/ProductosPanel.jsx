@@ -10,10 +10,13 @@ import {
   Pause,
   Upload,
   X,
+  Package,
   Image as ImageIcon,
 } from "lucide-react";
 import "../../styles/vendedor/productosPanel.css";
 import "../../styles/perfil.css";
+import Perfil from "../users/perfil";
+import "../../styles/globals.css";
 
 const ProductosPanel = () => {
   const [productos, setProductos] = useState([]);
@@ -521,7 +524,7 @@ const ProductosPanel = () => {
       {/* MODAL */}
       {modalAbierto && (
         <div className="modal-overlay" onClick={cerrarModal}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-productos" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
                 {modoEdicion ? "Editar Producto" : "Publicar Nuevo Producto"}

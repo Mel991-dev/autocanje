@@ -449,7 +449,7 @@ const Catalogo = () => {
                       alt={producto.nombre_producto}
                     />
                   </div>
-                  <div className="product-info">
+                  <div className="product-info card-producto">
                     <span className="category-badge">
                       {producto.nombre_categoria}
                     </span>

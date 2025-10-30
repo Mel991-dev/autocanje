@@ -14,7 +14,7 @@ from datetime import datetime
 
 # Configuración de subida de archivos
 UPLOAD_FOLDER = 'uploads/productos'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 MAX_FILE_SIZE =  5 * 1024 * 1024 #5MB
 
 # Crear carpeta si no existe
@@ -58,6 +58,10 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No tienes permiso para subir imágenes a este producto'
             }), 403
         
+        # ✅ NUEVO: Verificar cuántas imágenes tiene el producto actualmente
+        imagenes_actuales = obtener_imagenes_producto(id_producto)
+        total_imagenes_actuales = len(imagenes_actuales)
+        
         # Obtener archivos
         files = request.files.getlist('imagenes')
         
@@ -67,14 +71,17 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No se enviaron imágenes'
             }), 400
         
-        if len(files) > 5:
+        # ✅ VALIDAR que no exceda las 5 imágenes totales
+        total_imagenes_nuevas = total_imagenes_actuales + len(files)
+        if total_imagenes_nuevas > 5:
             return jsonify({
                 'success': False,
-                'error': 'Máximo 5 imágenes permitidas'
+                'error': f'Solo puedes tener máximo 5 imágenes. Actualmente tienes {total_imagenes_actuales}'
             }), 400
         
         urls_guardadas = []
-        es_primera = True  # La primera imagen será la principal
+        # ✅ La primera imagen será principal solo si no hay imágenes previas
+        es_primera = (total_imagenes_actuales == 0)
         
         for file in files:
             if file and allowed_file(file.filename):
@@ -91,7 +98,7 @@ def subir_imagenes_producto(usuario_id):
                 file.seek(0)
                 
                 # Generar nombre único
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
                 filename = secure_filename(file.filename)
                 nombre_unico = f"{id_producto}_{timestamp}_{filename}"
                 
@@ -99,7 +106,7 @@ def subir_imagenes_producto(usuario_id):
                 filepath = os.path.join(UPLOAD_FOLDER, nombre_unico)
                 file.save(filepath)
                 
-                # ✅ MODIFICADO: Guardar URL completa con el dominio del backend
+                # Guardar URL completa con el dominio del backend
                 url_imagen = f"http://127.0.0.1:5000/uploads/productos/{nombre_unico}"
                 
                 id_imagen = crear_imagen_producto(
@@ -140,21 +147,62 @@ def subir_imagenes_producto(usuario_id):
 @token_requerido
 def eliminar_imagen_producto_controller(usuario_id, id_imagen):
     """
-    Elimina una imagen de producto
+    Elimina una imagen de producto (con verificación de permisos)
     """
     if request.method == 'OPTIONS':
         return '', 204
     
     try:
-        # Aquí deberías verificar que la imagen pertenezca a un producto del usuario
-        # Por simplicidad, usamos la función del modelo directamente
+        # ✅ NUEVO: Verificar que la imagen pertenezca a un producto del usuario
+        from config.database import conexion
+        conn = conexion()
+        cursor = conn.cursor(dictionary=True)
         
+        # Obtener información de la imagen y el producto
+        cursor.execute("""
+            SELECT ip.*, p.fk_vendedor, ip.url_imagen
+            FROM imagen_producto ip
+            INNER JOIN producto p ON ip.fk_producto = p.id_producto
+            WHERE ip.id_imagen_prod = %s
+        """, (id_imagen,))
+        
+        imagen_info = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not imagen_info:
+            return jsonify({
+                'success': False,
+                'error': 'Imagen no encontrada'
+            }), 404
+        
+        # Verificar que el usuario sea el dueño del producto
+        if imagen_info['fk_vendedor'] != usuario_id:
+            return jsonify({
+                'success': False,
+                'error': 'No tienes permiso para eliminar esta imagen'
+            }), 403
+        
+        # ✅ Eliminar archivo físico del servidor
+        url_imagen = imagen_info['url_imagen']
+        if url_imagen.startswith('http://127.0.0.1:5000/uploads/productos/'):
+            nombre_archivo = url_imagen.split('/')[-1]
+            filepath = os.path.join(UPLOAD_FOLDER, nombre_archivo)
+            
+            if os.path.exists(filepath):
+                try:
+                    os.remove(filepath)
+                    print(f"Archivo eliminado: {filepath}")
+                except Exception as e:
+                    print(f"Error al eliminar archivo físico: {str(e)}")
+        
+        # Eliminar registro de la base de datos
         eliminado = eliminar_imagen_producto(id_imagen)
         
         if not eliminado:
             return jsonify({
                 'success': False,
-                'error': 'Error al eliminar imagen'
+                'error': 'Error al eliminar imagen de la base de datos'
             }), 500
         
         return jsonify({
@@ -164,6 +212,8 @@ def eliminar_imagen_producto_controller(usuario_id, id_imagen):
         
     except Exception as e:
         print(f"Error al eliminar imagen: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': f'Error al eliminar imagen: {str(e)}'
@@ -179,6 +229,21 @@ def obtener_imagenes_producto_controller(usuario_id, id_producto):
         return '', 204
     
     try:
+        # ✅ Verificar que el producto exista y pertenezca al usuario
+        producto = obtener_producto_por_id(id_producto)
+        
+        if not producto:
+            return jsonify({
+                'success': False,
+                'error': 'Producto no encontrado'
+            }), 404
+        
+        if producto['fk_vendedor'] != usuario_id:
+            return jsonify({
+                'success': False,
+                'error': 'No tienes permiso para ver las imágenes de este producto'
+            }), 403
+        
         imagenes = obtener_imagenes_producto(id_producto)
         
         return jsonify({

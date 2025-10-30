@@ -163,13 +163,13 @@ const Header = () => {
             <>
               <a
                 href="/login"
-                className="btn-base btn-outlined text-sm btn-login"
+                className="btn-base btn-outlined text-sm btn-login width-btn"
               >
                 Iniciar Sesión
               </a>
               <a
                 href="/registro"
-                className="btn-base btn-primary text-sm btn-register"
+                className="btn-base btn-primary text-sm btn-register width-btn reg"
               >
                 Registrarse
               </a>

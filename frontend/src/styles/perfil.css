@@ -124,8 +124,9 @@
   background: rgb(252, 252, 252);
   border: 1px solid #e5e7eb;
   color: #1a1a1a;
-  max-width: 300px;
 }
+
+.btn-editar {max-width: 200px;}
 
 .btn-outline:hover {
   border-color: #007BFF;

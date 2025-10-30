@@ -13,6 +13,8 @@ import ProductosPanel from "./pages/vendedor/ProductosPanel";
 import Catalogo from "./pages/catalogo";
 import Carrito from "./pages/producto/Carrito";
 import VistaPrevia from "./pages/producto/vistaPrevia";
+import Checkout from "./pages/checkout/Checkout";
+import Comprobante from "./pages/checkout/Comprobante";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
         <Route path="/catalogo" element={<Catalogo />} />
         <Route path="/producto/:id" element={<VistaPrevia />} />
         <Route path="/carrito" element={<Carrito />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/checkout/comprobante/:id" element={<Comprobante />} />
       </Routes>
     </Router>
   );

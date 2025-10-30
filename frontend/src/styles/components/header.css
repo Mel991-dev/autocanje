@@ -246,6 +246,14 @@
   position: relative;
 }
 
+.width-btn {
+  min-width: 120px;
+  text-align: center;
+  min-height: auto;
+}
+
+.reg {margin-top: 8px;}
+
 .cart-badge {
   position: absolute;
   top: -6px;

@@ -138,7 +138,11 @@ const ProductosPanel = () => {
         setError(`${file.name} excede el tamaño máximo de 5MB`);
         return false;
       }
-      if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.type)) {
+      if (
+        !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
+          file.type
+        )
+      ) {
         setError(`${file.name} no es un formato válido`);
         return false;
       }
@@ -188,7 +192,7 @@ const ProductosPanel = () => {
     setImagenesPreview([]);
   };
 
-  const abrirModalEditar = (producto) => {
+  const abrirModalEditar = async (producto) => {
     setModoEdicion(true);
     setProductoEditando(producto);
     setFormData({
@@ -200,8 +204,32 @@ const ProductosPanel = () => {
       stock: producto.stock,
       pausado: producto.pausado,
     });
+
+    // ✅ Cargar imágenes existentes del producto
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://127.0.0.1:5000/api/productos/${producto.id_producto}/imagenes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success && response.data.imagenes.length > 0) {
+        // Convertir URLs de imágenes existentes a previews
+        const imagenesExistentes = response.data.imagenes.map(
+          (img) => img.url_imagen
+        );
+        setImagenesPreview(imagenesExistentes);
+        // No establecemos imagenesSeleccionadas porque son URLs, no archivos
+      }
+    } catch (error) {
+      console.error("Error al cargar imágenes del producto:", error);
+    }
+
     setImagenesSeleccionadas([]);
-    setImagenesPreview([]);
     setModalAbierto(true);
   };
 
@@ -654,14 +682,17 @@ const ProductosPanel = () => {
                       required
                     />
                   </div>
-                  
+
                   {/* SECCIÓN DE IMÁGENES */}
                   <div className="form-group full-width">
                     <label>
-                      <ImageIcon size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                      <ImageIcon
+                        size={16}
+                        style={{ display: "inline", marginRight: "0.5rem" }}
+                      />
                       Imágenes del Producto (Máximo 5)
                     </label>
-                    
+
                     <div className="upload-images-container">
                       <input
                         type="file"
@@ -671,7 +702,7 @@ const ProductosPanel = () => {
                         onChange={handleImagenesChange}
                         style={{ display: "none" }}
                       />
-                      
+
                       <label
                         htmlFor="imagenes-input"
                         className="btn-upload-images"
@@ -705,7 +736,8 @@ const ProductosPanel = () => {
                           className="preview-images-grid"
                           style={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                            gridTemplateColumns:
+                              "repeat(auto-fill, minmax(100px, 1fr))",
                             gap: "0.75rem",
                             marginTop: "1rem",
                           }}

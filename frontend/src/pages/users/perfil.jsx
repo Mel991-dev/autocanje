@@ -289,7 +289,7 @@ const Perfil = () => {
             </div>
           </div>
 
-          <button className="btn btn-outline" onClick={toggleModoEdicion}>
+          <button className="btn btn-outline btn-editar" onClick={toggleModoEdicion}>
             {modoEdicion ? (
               <>
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">

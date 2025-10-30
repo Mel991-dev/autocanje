@@ -53,7 +53,7 @@ const Footer = () => {
     },
     { 
       icon: MapPin, 
-      label: 'Bogotá, Colombia', 
+      label: 'Caquetá, Colombia', 
       href: null 
     },
   ];

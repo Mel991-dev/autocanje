@@ -167,6 +167,7 @@
 .btn-clear {
   width: 100%;
   padding: 0.75rem;
+  color: #374151;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
@@ -180,7 +181,8 @@
 }
 
 .btn-clear:hover {
-  background: #f9fafb;
+  background: #FFC107;
+  border: 2px solid #f1ba15;;
 }
 
 /* ================================================
@@ -317,7 +319,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 5px;
 }
+
+.card-producto {max-height: 600px;}
 
 .category-badge {
   display: inline-block;
@@ -361,12 +366,14 @@
 }
 
 .product-price {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #007BFF;
   margin-bottom: 1rem;
   margin-top: auto;
 }
+
+.product-price>span {font-size: 1.7rem;}
 
 .btn-add-cart {
   width: 100%;

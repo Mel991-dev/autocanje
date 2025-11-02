@@ -1,5 +1,31 @@
 # models/producto_model.py
 from config.database import conexion
+from decimal import Decimal
+
+def convertir_valores_numericos(producto):
+    """
+    Convierte Decimal y otros tipos a float/int para JSON
+    """
+    if not producto:
+        return None
+    
+    # Convertir Decimals a float
+    if isinstance(producto.get('precio'), Decimal):
+        producto['precio'] = float(producto['precio'])
+    
+    if isinstance(producto.get('promedio_valoracion'), Decimal):
+        producto['promedio_valoracion'] = float(producto['promedio_valoracion'])
+    elif producto.get('promedio_valoracion') is None:
+        producto['promedio_valoracion'] = 0.0
+    
+    if isinstance(producto.get('stock'), Decimal):
+        producto['stock'] = int(producto['stock'])
+    
+    if isinstance(producto.get('valoraciones'), Decimal):
+        producto['valoraciones'] = int(producto['valoraciones'])
+    
+    return producto
+
 
 def crear_producto(fk_vendedor, fk_categoria, fk_tipo_vehiculo, nombre_producto, 
                    descripcion, precio, stock, pausado=False):
@@ -317,30 +343,16 @@ def eliminar_imagen_producto(id_imagen):
         cursor.close()
         conn.close()
         return False
-    
+
+
 def obtener_productos_catalogo(filtros=None):
     """
     Obtiene productos del catálogo público con filtros avanzados
-    
-    Args:
-        filtros (dict): {
-            'busqueda': str,
-            'categoria': int,
-            'tipo_vehiculo': int,
-            'precio_min': float,
-            'precio_max': float,
-            'valoracion_min': float,
-            'orden': str ('precio_asc', 'precio_desc', 'valoracion', 'reciente')
-        }
-    
-    Returns:
-        list: Lista de productos con información completa
     """
     conn = conexion()
     cursor = conn.cursor(dictionary=True)
     
     try:
-        # Query base
         sql = """
             SELECT 
                 p.id_producto,
@@ -381,15 +393,17 @@ def obtener_productos_catalogo(filtros=None):
                 busqueda_param = f"%{filtros['busqueda']}%"
                 params.extend([busqueda_param, busqueda_param])
             
-            # Filtro por categoría
-            if filtros.get('categoria'):
-                sql += " AND p.fk_categoria = %s"
-                params.append(filtros['categoria'])
+            # Filtro por categorías múltiples
+            if filtros.get('categoria') and isinstance(filtros['categoria'], list) and len(filtros['categoria']) > 0:
+                placeholders = ','.join(['%s'] * len(filtros['categoria']))
+                sql += f" AND p.fk_categoria IN ({placeholders})"
+                params.extend(filtros['categoria'])
             
-            # Filtro por tipo de vehículo
-            if filtros.get('tipo_vehiculo'):
-                sql += " AND p.fk_tipo_vehiculo = %s"
-                params.append(filtros['tipo_vehiculo'])
+            # Filtro por tipos de vehículo múltiples
+            if filtros.get('tipo_vehiculo') and isinstance(filtros['tipo_vehiculo'], list) and len(filtros['tipo_vehiculo']) > 0:
+                placeholders = ','.join(['%s'] * len(filtros['tipo_vehiculo']))
+                sql += f" AND p.fk_tipo_vehiculo IN ({placeholders})"
+                params.extend(filtros['tipo_vehiculo'])
             
             # Filtro por rango de precio
             if filtros.get('precio_min') is not None:
@@ -422,6 +436,9 @@ def obtener_productos_catalogo(filtros=None):
         # Ejecutar query
         cursor.execute(sql, params)
         productos = cursor.fetchall()
+        
+        # ✅ CONVERTIR VALORES NUMÉRICOS PARA CADA PRODUCTO
+        productos = [convertir_valores_numericos(p) for p in productos]
         
         cursor.close()
         conn.close()
@@ -468,6 +485,9 @@ def obtener_producto_detalle(id_producto):
         producto = cursor.fetchone()
         
         if producto:
+            # ✅ CONVERTIR VALORES NUMÉRICOS
+            producto = convertir_valores_numericos(producto)
+            
             # Obtener imágenes del producto
             imagenes = obtener_imagenes_producto(id_producto)
             producto['imagenes'] = imagenes
@@ -482,6 +502,42 @@ def obtener_producto_detalle(id_producto):
         cursor.close()
         conn.close()
         return None
+
+
+def obtener_valoraciones_producto(id_producto):
+    """
+    Obtiene las valoraciones y comentarios de un producto (CA-4.3.3)
+    """
+    conn = conexion()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        sql = """
+            SELECT 
+                v.*,
+                u.primer_nombre,
+                u.primer_apellido,
+                DATE_FORMAT(v.fecha_valoracion, '%d de %M, %Y') as fecha_formateada
+            FROM valoracion v
+            LEFT JOIN usuario u ON v.fk_usuario = u.id_usuario
+            WHERE v.fk_producto = %s
+            ORDER BY v.fecha_valoracion DESC
+            LIMIT 10
+        """
+        
+        cursor.execute(sql, (id_producto,))
+        valoraciones = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return valoraciones
+        
+    except Exception as e:
+        print(f"Error al obtener valoraciones: {str(e)}")
+        cursor.close()
+        conn.close()
+        return []
 
 
 def obtener_estadisticas_catalogo():
@@ -650,6 +706,9 @@ def obtener_productos_relacionados(id_producto, limite=4):
         
         relacionados = cursor.fetchall()
         
+        # ✅ CONVERTIR VALORES NUMÉRICOS PARA PRODUCTOS RELACIONADOS
+        relacionados = [convertir_valores_numericos(p) for p in relacionados]
+        
         cursor.close()
         conn.close()
         
@@ -664,7 +723,7 @@ def obtener_productos_relacionados(id_producto, limite=4):
 
 def obtener_productos_mas_vendidos(limite=10):
     """
-    Obtiene los productos más vendidos (placeholder - cuando implementes ventas)
+    Obtiene los productos más vendidos
     Por ahora retorna los mejor valorados
     """
     conn = conexion()

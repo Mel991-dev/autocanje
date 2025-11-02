@@ -8,7 +8,8 @@ from models.producto_model import (
     obtener_productos_relacionados,
     obtener_productos_mas_vendidos,
     obtener_tipos_vehiculo,
-    obtener_categorias  # Nueva importación
+    obtener_categorias,
+    obtener_imagenes_producto
 )
 
 def obtener_catalogo_controller():
@@ -23,20 +24,28 @@ def obtener_catalogo_controller():
         if request.args.get('busqueda'):
             filtros['busqueda'] = request.args.get('busqueda').strip()
         
-        # Categorías múltiples
+        # Categorías múltiples - Soporta tanto categoria[] como categoria
         categorias = request.args.getlist('categoria[]')
+        if not categorias:
+            categorias = request.args.getlist('categoria')
+        
         if categorias:
             try:
-                filtros['categoria'] = [int(c) for c in categorias if c.isdigit()]
-            except ValueError:
+                # Convertir a enteros y filtrar valores válidos
+                filtros['categoria'] = [int(c) for c in categorias if str(c).isdigit()]
+            except (ValueError, TypeError):
                 pass
         
-        # Tipos de vehículo múltiples
+        # Tipos de vehículo múltiples - Soporta tanto tipo_vehiculo[] como tipo_vehiculo
         tipos_vehiculo = request.args.getlist('tipo_vehiculo[]')
+        if not tipos_vehiculo:
+            tipos_vehiculo = request.args.getlist('tipo_vehiculo')
+            
         if tipos_vehiculo:
             try:
-                filtros['tipo_vehiculo'] = [int(t) for t in tipos_vehiculo if t.isdigit()]
-            except ValueError:
+                # Convertir a enteros y filtrar valores válidos
+                filtros['tipo_vehiculo'] = [int(t) for t in tipos_vehiculo if str(t).isdigit()]
+            except (ValueError, TypeError):
                 pass
         
         # Rango de precio
@@ -84,10 +93,13 @@ def obtener_catalogo_controller():
             'error': f'Error al obtener catálogo: {str(e)}'
         }), 500
 
-
 def obtener_producto_detalle_controller(id_producto):
     """
-    Obtiene el detalle completo de un producto
+    Obtiene el detalle completo de un producto para la vista previa
+    
+    CA-4.3.1: Información completa del producto
+    CA-4.3.2: Múltiples imágenes en galería
+    CA-4.3.3: Valoración promedio y comentarios
     """
     try:
         producto = obtener_producto_detalle(id_producto)
@@ -109,11 +121,16 @@ def obtener_producto_detalle_controller(id_producto):
         
     except Exception as e:
         print(f"Error al obtener detalle: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': 'Error al obtener el producto'
         }), 500
 
+
+# Función del modelo que ya existe en producto_model.py
+# Esta es la versión completa
 
 def obtener_estadisticas_controller():
     """
@@ -139,7 +156,41 @@ def obtener_estadisticas_controller():
             'success': False,
             'error': 'Error al obtener estadísticas'
         }), 500
-
+        
+def obtener_valoraciones_producto(id_producto):
+    """
+    Obtiene las valoraciones y comentarios de un producto (CA-4.3.3)
+    """
+    conn = conexion()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        sql = """
+            SELECT 
+                v.*,
+                u.primer_nombre,
+                u.primer_apellido,
+                DATE_FORMAT(v.fecha_valoracion, '%d de %M, %Y') as fecha_formateada
+            FROM valoracion v
+            LEFT JOIN usuario u ON v.fk_usuario = u.id_usuario
+            WHERE v.fk_producto = %s
+            ORDER BY v.fecha_valoracion DESC
+            LIMIT 10
+        """
+        
+        cursor.execute(sql, (id_producto,))
+        valoraciones = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return valoraciones
+        
+    except Exception as e:
+        print(f"Error al obtener valoraciones: {str(e)}")
+        cursor.close()
+        conn.close()
+        return []
 
 def buscar_sugerencias_controller():
     """

@@ -121,10 +121,12 @@
 }
 
 .btn-outline {
-  background: white;
+  background: rgb(252, 252, 252);
   border: 1px solid #e5e7eb;
   color: #1a1a1a;
 }
+
+.btn-editar {max-width: 200px;}
 
 .btn-outline:hover {
   border-color: #007BFF;
@@ -135,6 +137,7 @@
   background: linear-gradient(135deg, #007BFF 0%, #0056b3 100%);
   color: white;
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  max-width: 300px;
 }
 
 .btn-primary:hover {
@@ -417,14 +420,13 @@ tbody tr:hover {
 }
 
 .product-info {
+  max-width: 300px;
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
 .product-image {
-  width: 48px;
-  height: 48px;
   border-radius: 8px;
   background: #f3f4f6;
   display: flex;

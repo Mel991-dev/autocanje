@@ -4,6 +4,7 @@ import React from 'react';
 import '../styles/home.css';
 import Header from '../components/header';
 import Footer from '../components/footer';
+import ZhuYuan from '../assets/images/fotoHome.jpg';
 import { 
   Star, 
   Shield, 
@@ -111,16 +112,13 @@ const Home = () => {
               <a href="/catalogo" className="home-btn-hero-primary">
                 Explorar Catálogo
               </a>
-              <a href="/productos" className="home-btn-hero-outline">
-                Ver tus Productos
-              </a>
             </div>
           </div>
 
           {/* Imagen del hero */}
           <div className="home-hero-image">
             <img 
-              src="/images/automotive-parts-display.jpg" 
+              src={ZhuYuan}
               alt="Partes vehiculares en estantería"
             />
           </div>
@@ -138,7 +136,7 @@ const Home = () => {
               <h2 className="home-section-title">Productos Destacados</h2>
               <p className="home-section-subtitle">Las mejores ofertas de la semana</p>
             </div>
-            <a href="/catalog" className="home-btn-view-all">
+            <a href="/catalogo" className="home-btn-view-all">
               Ver Todos
             </a>
           </div>
@@ -259,7 +257,7 @@ const Home = () => {
             {categories.map((category) => (
               <a 
                 key={category.name} 
-                href={`/catalog?category=${category.name}`}
+                href={`/catalogo?category=${category.name}`}
                 className="home-category-card"
               >
                 <div className="home-category-icon">{category.icon}</div>

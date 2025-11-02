@@ -50,6 +50,8 @@
   margin: 2rem 1rem;
 }
 
+.info-catalogo {min-width: 100%;}
+
 /* ============================================
    GALERÍA DE IMÁGENES
    ============================================ */
@@ -209,6 +211,7 @@
   border-top: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .price-row {
@@ -253,6 +256,7 @@
    ============================================ */
 
 .stock-section {
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -288,6 +292,7 @@
    ============================================ */
 
 .quantity-section {
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -309,7 +314,10 @@
 .quantity-btn {
   width: 40px;
   height: 40px;
+  display: grid;
+  place-content: center;
   border: 1px solid #e5e7eb;
+  color: #374151;
   background: white;
   border-radius: 6px;
   cursor: pointer;
@@ -346,6 +354,7 @@
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Estilos base de botones */
@@ -371,6 +380,10 @@
   box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 }
 
+.agregar-carrito {
+  min-width: 100%;
+}
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
@@ -384,19 +397,19 @@
 }
 
 .btn-secondary:hover {
-  border-color: #007bff;
-  color: #007bff;
+  border-color: #ffc107;
+  background-color: #ffc107;
 }
 
 /* Botón premium (Reservar) */
 .btn-premium {
-  background: white;
+  background: rgb(255, 251, 251);
   border: 2px solid #ffc107;
   color: #1a1a1a;
 }
 
 .btn-premium:hover {
-  background: #fffbeb;
+  background: #ffc107;
 }
 
 /* ============================================
@@ -408,6 +421,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 /* Item individual de beneficio */
@@ -484,8 +498,9 @@
 }
 
 .tab-button.active {
-  color: #007bff;
+  color: white;
   border-bottom-color: #007bff;
+  transition: 0.3s ease-in-out;
 }
 
 /* ============================================
@@ -539,9 +554,6 @@
   margin-bottom: 0.5rem;
   color: #1a1a1a;
 }
-/* frontend/src/styles/producto/vistaprevia.css */
-
-/* ... código anterior ... */
 
 .rating-stars-big {
   display: flex;
@@ -623,6 +635,32 @@
   border-bottom: none;
 }
 
+/* ============================================
+   MENSAJES DE CARRITO
+   ============================================ */
+
+.mensaje-carrito {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1rem;
+  animation: slideDown 0.3s ease-out;
+}
+
+.mensaje-carrito.exito {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.mensaje-carrito.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
 /* Header de la reseña (avatar y usuario) */
 .review-header {
   display: flex;
@@ -682,7 +720,7 @@
 .review-helpful:hover {
   background: #f9fafb;
   border-color: #007bff;
-  color: #007bff;
+  color: white;
 }
 
 /* ============================================
@@ -762,6 +800,22 @@
     transform: translateY(0);
   }
 }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
 
 .product-layout {
   animation: fadeIn 0.5s ease-out;

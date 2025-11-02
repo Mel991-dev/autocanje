@@ -1,6 +1,8 @@
 // frontend/src/pages/producto/vistaPrevia.jsx
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   Heart,
   Share2,
@@ -11,176 +13,265 @@ import {
   RefreshCw,
   Clock,
   Star,
+  Loader,
+  Image as ImageIcon,
 } from "lucide-react";
 import "../../styles/producto/vistaprevia.css";
 import Header from "../../components/header";
 import Footer from "../../components/footer";
 
-/**
- * Componente Vista Previa del Producto
- *
- * Muestra la información detallada de un producto incluyendo:
- * - Galería de imágenes
- * - Información del producto (título, precio, rating)
- * - Control de cantidad
- * - Botones de acción (Agregar al carrito, Comprar, Reservar)
- * - Beneficios del producto
- * - Tabs de Descripción y Reseñas
- */
+const API_URL = "http://127.0.0.1:5000/api";
+
 const VistaPrevia = () => {
-  // Estados del componente
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [producto, setProducto] = useState(null);
+  const [relacionados, setRelacionados] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Datos del producto (ejemplo)
-  const product = {
-    id: 1,
-    category: "Frenos",
-    name: "Pastillas de Freno Cerámicas Premium",
-    rating: 4.8,
-    reviewsCount: 124,
-    soldCount: 456,
-    currentPrice: 89900,
-    originalPrice: 120000,
-    discount: 25,
-    stock: 23,
-    stockPercentage: 46,
-    description: `Pastillas de freno cerámicas de alta calidad diseñadas para ofrecer un rendimiento superior y una vida útil prolongada. Fabricadas con materiales de primera calidad que garantizan una frenada segura y eficiente en todas las condiciones.
+  // Estados de agregar al carrito
+  const [agregandoCarrito, setAgregandoCarrito] = useState(false);
+  const [mensajeCarrito, setMensajeCarrito] = useState("");
 
-Características principales:
-• Material cerámico de alta densidad
-• Bajo nivel de ruido y vibración
-• Excelente disipación de calor
-• Compatible con la mayoría de vehículos
-• Instalación sencilla y rápida`,
-    images: [
-      "https://images.unsplash.com/photo-1625047509248-ec889cbff17f?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&h=600&fit=crop",
-    ],
-    benefits: [
-      {
-        icon: Package,
-        title: "Envío Gratis",
-        description: "En pedidos mayores a $100,000",
-      },
-      {
-        icon: Shield,
-        title: "Garantía de 12 meses",
-        description: "Protección del fabricante",
-      },
-      {
-        icon: RefreshCw,
-        title: "Devolución Gratis",
-        description: "Hasta 30 días después de la compra",
-      },
-      {
-        icon: Clock,
-        title: "Entrega Estimada",
-        description: "3-7 días hábiles (1-3 días Premium)",
-      },
-    ],
-    reviews: [
-      {
-        id: 1,
-        name: "Carlos Rodríguez",
-        rating: 5,
-        date: "15 de Marzo, 2024",
-        comment:
-          "Excelente producto, la calidad es superior a las originales. Muy recomendado.",
-        helpful: 12,
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos",
-      },
-      {
-        id: 2,
-        name: "María González",
-        rating: 4,
-        date: "10 de Marzo, 2024",
-        comment:
-          "Buena relación calidad-precio. Llegaron rápido y bien empacadas.",
-        helpful: 8,
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria",
-      },
-      {
-        id: 3,
-        name: "Juan Pérez",
-        rating: 5,
-        date: "5 de Marzo, 2024",
-        comment: "Perfectas para mi vehículo. El frenado mejoró notablemente.",
-        helpful: 15,
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Juan",
-      },
-    ],
-    ratingBreakdown: [
-      { stars: 5, percentage: 70 },
-      { stars: 4, percentage: 20 },
-      { stars: 3, percentage: 10 },
-      { stars: 2, percentage: 10 },
-      { stars: 1, percentage: 10 },
-    ],
+  // ✅ ESTADOS PARA RESEÑAS
+  const [puedeValorar, setPuedeValorar] = useState(false);
+  const [yaValoro, setYaValoro] = useState(false);
+  const [mostrarFormReview, setMostrarFormReview] = useState(false);
+  const [calificacionNueva, setCalificacionNueva] = useState(0);
+  const [comentarioNuevo, setComentarioNuevo] = useState("");
+  const [enviandoReview, setEnviandoReview] = useState(false);
+  const [valoraciones, setValoraciones] = useState([]);
+
+  useEffect(() => {
+    cargarProducto();
+    verificarPermisosValoracion();
+  }, [id]);
+
+  const cargarProducto = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await axios.get(`${API_URL}/catalogo/${id}`);
+
+      if (response.data.success) {
+        setProducto(response.data.producto);
+        setRelacionados(response.data.relacionados || []);
+
+        // ✅ Cargar valoraciones del producto
+        cargarValoraciones();
+      } else {
+        setError(response.data.error || "Producto no encontrado");
+      }
+    } catch (err) {
+      console.error("Error al cargar producto:", err);
+      setError("Error al cargar el producto");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /**
-   * Cambia la imagen principal
-   */
+    const formatPrice = (price) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const formatRating = (rating) => {
+    const numRating = parseFloat(rating);
+    return isNaN(numRating) ? "0.0" : numRating.toFixed(1);
+  };
+
+  // ✅ NUEVA FUNCIÓN: Cargar valoraciones
+  const cargarValoraciones = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/valoraciones/producto/${id}`
+      );
+
+      if (response.data.success) {
+        setValoraciones(response.data.valoraciones || []);
+      }
+    } catch (err) {
+      console.error("Error al cargar valoraciones:", err);
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Verificar permisos de valoración
+  const verificarPermisosValoracion = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setPuedeValorar(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/valoraciones/permisos/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setPuedeValorar(response.data.puede_valorar);
+        setYaValoro(response.data.ya_valoro);
+      }
+    } catch (err) {
+      console.error("Error al verificar permisos:", err);
+      setPuedeValorar(false);
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Enviar reseña
+  const handleEnviarReview = async (e) => {
+    e.preventDefault();
+
+    if (calificacionNueva === 0) {
+      alert("Debes seleccionar una calificación");
+      return;
+    }
+
+    if (comentarioNuevo.trim().length < 10) {
+      alert("El comentario debe tener al menos 10 caracteres");
+      return;
+    }
+
+    setEnviandoReview(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_URL}/valoraciones/`,
+        {
+          fk_producto: producto.id_producto,
+          calificacion: calificacionNueva,
+          comentario: comentarioNuevo.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert("¡Reseña publicada con éxito!");
+
+        // Actualizar estados
+        setYaValoro(true);
+        setPuedeValorar(false);
+        setMostrarFormReview(false);
+        setCalificacionNueva(0);
+        setComentarioNuevo("");
+
+        // Recargar producto y valoraciones
+        cargarProducto();
+        verificarPermisosValoracion();
+      } else {
+        alert(response.data.error || "Error al publicar reseña");
+      }
+    } catch (err) {
+      console.error("Error al enviar reseña:", err);
+      alert(err.response?.data?.error || "Error al publicar reseña");
+    } finally {
+      setEnviandoReview(false);
+    }
+  };
+
   const handleImageChange = (index) => {
     setActiveImage(index);
   };
 
-  /**
-   * Incrementa o decrementa la cantidad
-   */
   const handleQuantityChange = (delta) => {
     const newQuantity = quantity + delta;
-    if (newQuantity >= 1 && newQuantity <= product.stock) {
+    if (newQuantity >= 1 && newQuantity <= (producto?.stock || 1)) {
       setQuantity(newQuantity);
     }
   };
 
-  /**
-   * Cambia la pestaña activa
-   */
   const handleTabChange = (tab) => {
     setActiveTab(tab);
   };
 
-  /**
-   * Agrega el producto al carrito
-   */
-  const handleAddToCart = () => {
-    console.log("Agregado al carrito:", { productId: product.id, quantity });
-    alert(`Agregado al carrito: ${quantity} unidad(es)`);
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMensajeCarrito("Debes iniciar sesión para agregar al carrito");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    setAgregandoCarrito(true);
+    setMensajeCarrito("");
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/carrito/agregar`,
+        {
+          fk_producto: producto.id_producto,
+          cantidad: quantity,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setMensajeCarrito(`✓ ${quantity} producto(s) agregado(s) al carrito`);
+
+        setTimeout(() => {
+          setQuantity(1);
+          setMensajeCarrito("");
+        }, 3000);
+      } else {
+        setMensajeCarrito(
+          `✗ ${response.data.error || "Error al agregar al carrito"}`
+        );
+      }
+    } catch (err) {
+      console.error("Error al agregar al carrito:", err);
+      setMensajeCarrito(
+        `✗ ${err.response?.data?.error || "Error al agregar al carrito"}`
+      );
+    } finally {
+      setAgregandoCarrito(false);
+    }
   };
 
-  /**
-   * Compra directa del producto
-   */
-  const handleBuyNow = () => {
-    console.log("Compra directa:", { productId: product.id, quantity });
-    alert("Redirigiendo al checkout...");
+  const handleBuyNow = async () => {
+    await handleAddToCart();
+    setTimeout(() => navigate("/carrito"), 1000);
   };
 
-  /**
-   * Reserva el producto (Premium)
-   */
   const handleReserve = () => {
-    console.log("Producto reservado:", { productId: product.id, quantity });
+    console.log("Producto reservado:", {
+      productId: producto.id_producto,
+      quantity,
+    });
     alert("Producto reservado por 72 horas (Función Premium)");
   };
 
-  /**
-   * Toggle favorito
-   */
   const handleFavoriteToggle = () => {
     setIsFavorite(!isFavorite);
   };
 
-  /**
-   * Renderiza las estrellas del rating
-   */
   const renderStars = (count) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -192,59 +283,201 @@ Características principales:
     ));
   };
 
+  const calcularDescuento = (precioActual, precioOriginal) => {
+    if (!precioOriginal || precioOriginal <= precioActual) return 0;
+    return Math.round(((precioOriginal - precioActual) / precioOriginal) * 100);
+  };
+
+  const calcularStockPercentage = (stock) => {
+    const maxStock = 100;
+    return Math.min((stock / maxStock) * 100, 100);
+  };
+
+  const ProductImageWithFallback = ({ src, alt, className = "" }) => {
+    const [imageError, setImageError] = useState(false);
+
+    if (!src || imageError) {
+      return (
+        <div
+          className={className}
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#9ca3af",
+            gap: "1rem",
+          }}
+        >
+          <ImageIcon size={64} strokeWidth={1.5} />
+          <span style={{ fontSize: "1rem", fontWeight: "500" }}>
+            Sin Imagen Disponible
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        onError={() => setImageError(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="vista-previa-container">
+        <Header />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "60vh",
+          }}
+        >
+          <Loader
+            size={48}
+            className="spinner"
+            style={{ animation: "spin 1s linear infinite" }}
+          />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !producto) {
+    return (
+      <div className="vista-previa-container">
+        <Header />
+        <div style={{ textAlign: "center", padding: "4rem 2rem" }}>
+          <h2>Producto no encontrado</h2>
+          <p style={{ color: "#6b7280", marginBottom: "2rem" }}>{error}</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate("/catalogo")}
+          >
+            Volver al Catálogo
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const imagenes =
+    producto.imagenes && producto.imagenes.length > 0
+      ? producto.imagenes
+      : null;
+
+  const descuento = calcularDescuento(producto.precio, producto.precio * 1.33);
+  const stockPercentage = calcularStockPercentage(producto.stock);
+
+  const beneficios = [
+    {
+      icon: Package,
+      title: "Envío Gratis",
+      description: "En pedidos mayores a $100,000",
+    },
+    {
+      icon: Shield,
+      title: "Garantía de 12 meses",
+      description: "Protección del fabricante",
+    },
+    {
+      icon: RefreshCw,
+      title: "Devolución Gratis",
+      description: "Hasta 30 días después de la compra",
+    },
+    {
+      icon: Clock,
+      title: "Entrega Estimada",
+      description: "3-7 días hábiles (1-3 días Premium)",
+    },
+  ];
+
   return (
     <div className="vista-previa-container">
       <Header />
-      {/* Breadcrumb */}
+
       <nav className="breadcrumb">
         <a href="/">Inicio</a>
         <span>/</span>
-        <a href="/catalog">Catálogo</a>
+        <a href="/catalogo">Catálogo</a>
         <span>/</span>
-        <a href="/catalog/frenos">Frenos</a>
+        <a href={`/catalogo?categoria=${producto.fk_categoria}`}>
+          {producto.nombre_categoria}
+        </a>
         <span>/</span>
-        <span className="current">{product.name}</span>
+        <span className="current">{producto.nombre_producto}</span>
       </nav>
 
-      {/* Layout del producto */}
       <div className="product-layout">
-        {/* Galería de imágenes */}
         <div className="product-images">
           <div className="main-image">
-            <img src={product.images[activeImage]} alt={product.name} />
+            {imagenes ? (
+              <ProductImageWithFallback
+                src={
+                  imagenes[activeImage]?.url_imagen || imagenes[0].url_imagen
+                }
+                alt={producto.nombre_producto}
+              />
+            ) : (
+              <ProductImageWithFallback src={null} alt="Sin imagen" />
+            )}
           </div>
-          <div className="thumbnail-grid">
-            {product.images.map((image, index) => (
-              <div
-                key={index}
-                className={`thumbnail ${activeImage === index ? "active" : ""}`}
-                onClick={() => handleImageChange(index)}
-              >
-                <img src={image} alt={`Vista ${index + 1}`} />
-              </div>
-            ))}
-          </div>
+
+          {imagenes && imagenes.length > 1 && (
+            <div className="thumbnail-grid">
+              {imagenes.map((imagen, index) => (
+                <div
+                  key={index}
+                  className={`thumbnail ${
+                    activeImage === index ? "active" : ""
+                  }`}
+                  onClick={() => handleImageChange(index)}
+                >
+                  <ProductImageWithFallback
+                    src={imagen.url_imagen}
+                    alt={`Vista ${index + 1}`}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Información del producto */}
-        <div className="product-info">
-          {/* Header del producto */}
+        <div className="product-info info-catalogo">
           <div className="product-header">
             <div>
-              <span className="category-badge">{product.category}</span>
-              <h1 className="product-title">{product.name}</h1>
+              <span className="category-badge">
+                {producto.nombre_categoria}
+              </span>
+              <h1 className="product-title">{producto.nombre_producto}</h1>
               <div className="product-meta">
                 <div className="rating">
                   <Star size={16} fill="#FFC107" color="#FFC107" />
-                  <span className="rating-value">{product.rating}</span>
-                  <span>({product.reviewsCount} reseñas)</span>
+                  <span className="rating-value">
+                    {producto.promedio_valoracion?.toFixed(1) || "N/A"}
+                  </span>
+                  <span>({producto.valoraciones || 0} reseñas)</span>
                 </div>
                 <span>|</span>
-                <span>{product.soldCount} vendidos</span>
+                <span>
+                  Vendido por: {producto.vendedor_nombre}{" "}
+                  {producto.vendedor_apellido}
+                </span>
               </div>
             </div>
 
-            {/* Botones de acción */}
             <div className="action-buttons">
               <button
                 className="btn-icon"
@@ -263,84 +496,111 @@ Características principales:
             </div>
           </div>
 
-          {/* Sección de precio */}
           <div className="price-section">
             <div className="price-row">
               <span className="current-price">
-                ${product.currentPrice.toLocaleString("es-CO")}
+                {formatPrice(producto.precio)}
               </span>
-              <span className="original-price">
-                ${product.originalPrice.toLocaleString("es-CO")}
-              </span>
-              <span className="discount-badge">-{product.discount}% OFF</span>
+              {descuento > 0 && (
+                <>
+                  <span className="original-price">
+                    {formatPrice(producto.precio * 1.33)}
+                  </span>
+                  <span className="discount-badge">-{descuento}% OFF</span>
+                </>
+              )}
             </div>
             <p className="price-note">Precio incluye IVA</p>
           </div>
 
-          {/* Sección de stock */}
           <div className="stock-section">
             <div className="stock-status">
               <CheckCircle size={20} color="#16a34a" />
               <span className="stock-text">
-                Disponible - {product.stock} unidades
+                {producto.stock > 0
+                  ? `Disponible - ${producto.stock} unidades`
+                  : "Sin stock disponible"}
               </span>
             </div>
-            <div className="stock-bar">
-              <div
-                className="stock-fill"
-                style={{ width: `${product.stockPercentage}%` }}
-              />
-            </div>
+            {producto.stock > 0 && (
+              <div className="stock-bar">
+                <div
+                  className="stock-fill"
+                  style={{ width: `${stockPercentage}%` }}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Control de cantidad */}
-          <div className="quantity-section">
-            <label className="quantity-label">Cantidad</label>
-            <div className="quantity-controls">
-              <button
-                className="quantity-btn"
-                onClick={() => handleQuantityChange(-1)}
-                disabled={quantity <= 1}
-              >
-                -
-              </button>
-              <span className="quantity-value">{quantity}</span>
-              <button
-                className="quantity-btn"
-                onClick={() => handleQuantityChange(1)}
-                disabled={quantity >= product.stock}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          {producto.stock > 0 && (
+            <div className="quantity-section">
+              <label className="quantity-label">Cantidad</label>
+              <div className="quantity-controls">
+                <button
+                  className="quantity-btn"
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <span className="quantity-value">{quantity}</span>
+                <button
+                  className="quantity-btn"
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={quantity >= producto.stock}
+                >
+                  +
+                </button>
+              </div>
 
-          {/* Botones de acción principales */}
+              {mensajeCarrito && (
+                <div
+                  className={`mensaje-carrito ${
+                    mensajeCarrito.includes("✓") ? "exito" : "error"
+                  }`}
+                >
+                  {mensajeCarrito}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="actions">
-            <button className="btn btn-primary" onClick={handleAddToCart}>
+            <button
+              className="btn btn-primary agregar-carrito"
+              onClick={handleAddToCart}
+              disabled={producto.stock === 0}
+            >
               <ShoppingCart size={20} />
-              Agregar al Carrito
+              {producto.stock > 0 ? "Agregar al Carrito" : "Sin Stock"}
             </button>
-            <button className="btn btn-secondary" onClick={handleBuyNow}>
+            <button
+              className="btn btn-secondary"
+              onClick={handleBuyNow}
+              disabled={producto.stock === 0}
+            >
               Comprar Ahora
             </button>
-            <button className="btn btn-premium" onClick={handleReserve}>
+            <button
+              className="btn btn-premium"
+              onClick={handleReserve}
+              disabled={producto.stock === 0}
+            >
               <Star size={20} />
               Reservar (Premium)
             </button>
           </div>
 
-          {/* Beneficios */}
           <div className="benefits-card">
-            {product.benefits.map((benefit, index) => {
-              const IconComponent = benefit.icon;
+            {beneficios.map((beneficio, index) => {
+              const IconComponent = beneficio.icon;
               return (
                 <div key={index} className="benefit-item">
                   <IconComponent className="benefit-icon" size={20} />
                   <div className="benefit-content">
-                    <div className="benefit-title">{benefit.title}</div>
+                    <div className="benefit-title">{beneficio.title}</div>
                     <div className="benefit-description">
-                      {benefit.description}
+                      {beneficio.description}
                     </div>
                   </div>
                 </div>
@@ -350,7 +610,6 @@ Características principales:
         </div>
       </div>
 
-      {/* Tabs (Descripción y Reseñas) */}
       <div className="tabs">
         <div className="tabs-list">
           <button
@@ -365,93 +624,345 @@ Características principales:
             className={`tab-button ${activeTab === "reviews" ? "active" : ""}`}
             onClick={() => handleTabChange("reviews")}
           >
-            Reseñas ({product.reviewsCount})
+            Reseñas ({producto.valoraciones || 0})
           </button>
         </div>
 
-        {/* Tab de Descripción */}
         {activeTab === "description" && (
           <div className="tab-content">
             <div className="description-card">
               <h2 className="description-title">Descripción del Producto</h2>
-              <div className="description-text">{product.description}</div>
+              <div className="description-text">
+                {producto.descripcion || "Sin descripción disponible"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: "2rem",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "1rem",
+                }}
+              >
+                <div>
+                  <strong>Categoría:</strong> {producto.nombre_categoria}
+                </div>
+                <div>
+                  <strong>Tipo de Vehículo:</strong>{" "}
+                  {producto.nombre_tipo_vehiculo || "No especificado"}
+                </div>
+                <div>
+                  <strong>Vendedor:</strong> {producto.vendedor_nombre}{" "}
+                  {producto.vendedor_apellido}
+                </div>
+                <div>
+                  <strong>Contacto:</strong>{" "}
+                  {producto.vendedor_telefono || "No disponible"}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tab de Reseñas */}
         {activeTab === "reviews" && (
           <div className="tab-content">
             <div className="description-card">
               <h2 className="description-title">Reseñas de Clientes</h2>
 
-              {/* Header de reseñas */}
               <div className="reviews-header">
                 <div className="reviews-score">
-                  <div className="big-rating">{product.rating}</div>
-                  <div className="rating-stars-big">{renderStars(5)}</div>
+                  <div className="big-rating">
+                    {producto.promedio_valoracion?.toFixed(1) || "0.0"}
+                  </div>
+                  <div className="rating-stars-big">
+                    {renderStars(Math.round(producto.promedio_valoracion || 0))}
+                  </div>
                   <div className="reviews-count">
-                    {product.reviewsCount} reseñas
+                    {producto.valoraciones || 0} reseñas
                   </div>
                 </div>
 
-                {/* Desglose de ratings */}
                 <div className="reviews-breakdown">
-                  {product.ratingBreakdown.map((item, index) => (
-                    <div key={index} className="breakdown-row">
-                      <span className="breakdown-label">{item.stars}★</span>
-                      <div className="breakdown-bar">
-                        <div
-                          className="breakdown-fill"
-                          style={{ width: `${item.percentage}%` }}
-                        />
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const totalReviews = producto.valoraciones || 1;
+                    const reviewsWithStars = valoraciones.filter(
+                      (r) => r.calificacion === stars
+                    ).length;
+                    const percentage = (reviewsWithStars / totalReviews) * 100;
+
+                    return (
+                      <div key={stars} className="breakdown-row">
+                        <span className="breakdown-label">{stars}★</span>
+                        <div className="breakdown-bar">
+                          <div
+                            className="breakdown-fill"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="breakdown-percent">
+                          {Math.round(percentage)}%
+                        </span>
                       </div>
-                      <span className="breakdown-percent">
-                        {item.percentage}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* Lista de reseñas */}
-              <div className="reviews-list">
-                {product.reviews.map((review) => (
-                  <div key={review.id} className="review-item">
-                    <div className="review-header">
-                      <img
-                        className="review-avatar"
-                        src={review.avatar}
-                        alt={review.name}
-                      />
-                      <div className="review-user">
-                        <div className="review-name">{review.name}</div>
-                        <div className="review-meta">
-                          <div className="review-stars">
-                            {renderStars(review.rating)}
-                          </div>
-                          <span>{review.date}</span>
-                        </div>
-                      </div>
+              {/* ✅ BOTÓN PARA ESCRIBIR RESEÑA */}
+              {puedeValorar && !mostrarFormReview && (
+                <div style={{ marginTop: "2rem", marginBottom: "2rem" }}>
+                  <button
+                    onClick={() => setMostrarFormReview(true)}
+                    className="btn btn-primary"
+                    style={{ width: "100%", maxWidth: "300px" }}
+                  >
+                    <Star size={18} />
+                    Escribir una reseña
+                  </button>
+                </div>
+              )}
+
+              {/* ✅ MENSAJE SI YA VALORÓ */}
+              {yaValoro && (
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#dcfce7",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: "8px",
+                    color: "#166534",
+                    marginTop: "1rem",
+                    marginBottom: "2rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <CheckCircle size={20} />
+                  <span>Ya has valorado este producto</span>
+                </div>
+              )}
+
+              {/* ✅ FORMULARIO DE RESEÑA */}
+              {mostrarFormReview && (
+                <form
+                  onSubmit={handleEnviarReview}
+                  style={{
+                    background: "#f9fafb",
+                    padding: "2rem",
+                    borderRadius: "12px",
+                    marginTop: "2rem",
+                    marginBottom: "2rem",
+                    border: "2px solid #007BFF",
+                  }}
+                >
+                  <h3 style={{ marginBottom: "1.5rem", fontSize: "1.25rem" }}>
+                    Escribe tu reseña
+                  </h3>
+
+                  {/* Selector de estrellas */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontWeight: 600,
+                        marginBottom: "0.75rem",
+                        color: "#374151",
+                      }}
+                    >
+                      Calificación *
+                    </label>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={32}
+                          style={{ cursor: "pointer" }}
+                          fill={star <= calificacionNueva ? "#FFC107" : "none"}
+                          color={
+                            star <= calificacionNueva ? "#FFC107" : "#d1d5db"
+                          }
+                          onClick={() => setCalificacionNueva(star)}
+                        />
+                      ))}
                     </div>
-                    <p className="review-text">{review.comment}</p>
-                    <button className="review-helpful">
-                      Útil ({review.helpful})
+                  </div>
+
+                  {/* Comentario */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontWeight: 600,
+                        marginBottom: "0.75rem",
+                        color: "#374151",
+                      }}
+                    >
+                      Comentario * (mínimo 10 caracteres)
+                    </label>
+                    <textarea
+                      value={comentarioNuevo}
+                      onChange={(e) => setComentarioNuevo(e.target.value)}
+                      placeholder="Comparte tu experiencia con este producto..."
+                      rows={5}
+                      maxLength={500}
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        fontFamily: "inherit",
+                        fontSize: "0.95rem",
+                        resize: "vertical",
+                      }}
+                      required
+                    />
+                    <small style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                      {comentarioNuevo.length}/500 caracteres
+                    </small>
+                  </div>
+
+                  {/* Botones */}
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={
+                        enviandoReview ||
+                        calificacionNueva === 0 ||
+                        comentarioNuevo.length < 10
+                      }
+                      style={{ flex: 1 }}
+                    >
+                      {enviandoReview ? (
+                        <>
+                          <Loader size={18} className="spinner" />
+                          Publicando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={18} />
+                          Publicar Reseña
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMostrarFormReview(false);
+                        setCalificacionNueva(0);
+                        setComentarioNuevo("");
+                      }}
+                      className="btn btn-secondary"
+                      style={{ flex: 1 }}
+                    >
+                      Cancelar
                     </button>
                   </div>
-                ))}
-              </div>
+                </form>
+              )}
 
-              {/* Botón para ver todas las reseñas */}
-              <div className="reviews-footer">
-                <button className="btn btn-secondary">
-                  Ver Todas las Reseñas
-                </button>
+              {/* ✅ LISTA DE RESEÑAS */}
+              <div className="reviews-list">
+                {valoraciones && valoraciones.length > 0 ? (
+                  valoraciones.map((review) => (
+                    <div key={review.id_valoracion} className="review-item">
+                      <div className="review-header">
+                        <img
+                          className="review-avatar"
+                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${review.primer_nombre}`}
+                          alt={review.primer_nombre}
+                        />
+                        <div className="review-user">
+                          <div className="review-name">
+                            {review.primer_nombre} {review.primer_apellido}
+                          </div>
+                          <div className="review-meta">
+                            <div className="review-stars">
+                              {renderStars(review.calificacion)}
+                            </div>
+                            <span>{review.fecha_formateada}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="review-text">{review.comentario}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "3rem",
+                      color: "#6b7280",
+                    }}
+                  >
+                    <p>Aún no hay reseñas para este producto.</p>
+                    <p>¡Sé el primero en opinar!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {relacionados.length > 0 && (
+        <div style={{ margin: "3rem 1rem" }}>
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              marginBottom: "1.5rem",
+            }}
+          >
+            Productos Relacionados
+          </h2>
+          <div
+            className="products-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {relacionados.map((prod) => (
+              <div
+                key={prod.id_producto}
+                className="product-card"
+                onClick={() => {
+                  setActiveImage(0);
+                  navigate(`/producto/${prod.id_producto}`);
+                }}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="product-image">
+                  <ProductImageWithFallback
+                    src={prod.imagen_principal}
+                    alt={prod.nombre_producto}
+                  />
+                </div>
+                <div className="product-info">
+                  <span className="category-badge">
+                    {prod.nombre_categoria}
+                  </span>
+                  <h3 className="product-name">{prod.nombre_producto}</h3>
+                  <div className="product-rating">
+                    <Star size={14} fill="#FFC107" color="#FFC107" />
+                    <span className="rating-value">
+                      {prod.promedio_valoracion?.toFixed(1) || "N/A"}
+                    </span>
+                  </div>
+                  <div className="product-price">
+                    <span className="current-price">
+                      {formatPrice(prod.precio)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );

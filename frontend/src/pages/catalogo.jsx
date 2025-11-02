@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { X, SlidersHorizontal, ShoppingCart, Star, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  X,
+  SlidersHorizontal,
+  ShoppingCart,
+  Star,
+  Search,
+  Package,
+} from "lucide-react";
 import "../styles/catalogo.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
@@ -7,12 +16,15 @@ import Footer from "../components/footer";
 const API_URL = "http://127.0.0.1:5000/api";
 
 const Catalogo = () => {
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [tiposVehiculo, setTiposVehiculo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [agregandoCarrito, setAgregandoCarrito] = useState({});
+  const [mensajesCarrito, setMensajesCarrito] = useState({});
 
   const [filtros, setFiltros] = useState({
     busqueda: "",
@@ -41,10 +53,7 @@ const Catalogo = () => {
 
       const categoriasData = await categoriasRes.json();
       const tiposData = await tiposRes.json();
-      console.log("Datos de categorías:", categoriasData);
-      console.log("Datos de tipos de vehículo:", tiposData);
 
-      // Ajuste para manejar la clave 'tipos_vehiculo'
       setCategorias(
         categoriasData.categorias ||
           (categoriasData.success
@@ -74,6 +83,7 @@ const Catalogo = () => {
       filtros.tipo_vehiculo.forEach((tipo) =>
         params.append("tipo_vehiculo[]", tipo)
       );
+
       if (filtros.precio_min > 0)
         params.append("precio_min", filtros.precio_min);
       if (filtros.precio_max < 1000000)
@@ -113,7 +123,6 @@ const Catalogo = () => {
         campo === "precio_max" ||
         campo === "valoracion_min"
       ) {
-        // Campos con valores únicos
         return { ...prev, [campo]: valor };
       }
       const currentValues = prev[campo] || [];
@@ -137,8 +146,73 @@ const Catalogo = () => {
     });
   };
 
-  const agregarAlCarrito = (producto) => {
-    alert(`Producto "${producto.nombre_producto}" agregado al carrito`);
+  // ✅ ACTUALIZADO: Agregar al carrito con backend
+  const agregarAlCarrito = async (e, producto) => {
+    e.stopPropagation();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMensajesCarrito({
+        [producto.id_producto]: "Debes iniciar sesión",
+      });
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
+
+    setAgregandoCarrito((prev) => ({ ...prev, [producto.id_producto]: true }));
+    setMensajesCarrito((prev) => ({ ...prev, [producto.id_producto]: "" }));
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/carrito/agregar`,
+        {
+          fk_producto: producto.id_producto,
+          cantidad: 1, // Por defecto 1 desde el catálogo
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setMensajesCarrito((prev) => ({
+          ...prev,
+          [producto.id_producto]: "✓ Agregado",
+        }));
+
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => {
+          setMensajesCarrito((prev) => {
+            const newMessages = { ...prev };
+            delete newMessages[producto.id_producto];
+            return newMessages;
+          });
+        }, 3000);
+      } else {
+        setMensajesCarrito((prev) => ({
+          ...prev,
+          [producto.id_producto]: "✗ Error",
+        }));
+      }
+    } catch (err) {
+      console.error("Error al agregar al carrito:", err);
+      setMensajesCarrito((prev) => ({
+        ...prev,
+        [producto.id_producto]: "✗ Error al agregar",
+      }));
+    } finally {
+      setAgregandoCarrito((prev) => ({
+        ...prev,
+        [producto.id_producto]: false,
+      }));
+    }
+  };
+
+  const verProducto = (idProducto) => {
+    navigate(`/producto/${idProducto}`);
   };
 
   const formatPrice = (price) => {
@@ -147,6 +221,43 @@ const Catalogo = () => {
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  // ✅ Componente para renderizar imagen con fallback
+  const ProductImage = ({ src, alt }) => {
+    const [imageError, setImageError] = useState(false);
+
+    if (!src || imageError) {
+      return (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#9ca3af",
+            gap: "0.5rem",
+          }}
+        >
+          <Package size={48} strokeWidth={1.5} />
+          <span style={{ fontSize: "0.875rem", fontWeight: "500" }}>
+            Sin Imagen
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={src}
+        alt={alt}
+        onError={() => setImageError(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    );
   };
 
   const FiltersSection = ({ isMobile = false }) => (
@@ -181,7 +292,7 @@ const Catalogo = () => {
               </label>
             ))
           ) : (
-            <p>No se cargaron categorías. Revisa la consola.</p>
+            <p>No se cargaron categorías.</p>
           )}
         </div>
       </div>
@@ -203,7 +314,7 @@ const Catalogo = () => {
               </label>
             ))
           ) : (
-            <p>No se cargaron tipos de vehículo. Revisa la consola.</p>
+            <p>No se cargaron tipos de vehículo.</p>
           )}
         </div>
       </div>
@@ -276,7 +387,6 @@ const Catalogo = () => {
       </div>
 
       <div className="catalog-layout">
-        {/* Sidebar Desktop */}
         <aside className="sidebar">
           <div className="filters-card">
             <div className="filters-header">
@@ -287,9 +397,7 @@ const Catalogo = () => {
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="main-content">
-          {/* Toolbar */}
           <div className="toolbar">
             <div className="toolbar-left">
               <button
@@ -319,7 +427,6 @@ const Catalogo = () => {
             </select>
           </div>
 
-          {/* Products Grid */}
           {loading ? (
             <div className="loading">Cargando productos...</div>
           ) : error ? (
@@ -331,17 +438,18 @@ const Catalogo = () => {
           ) : (
             <div className="products-grid">
               {productos.map((producto) => (
-                <div key={producto.id_producto} className="product-card">
+                <div
+                  key={producto.id_producto}
+                  className="product-card"
+                  onClick={() => verProducto(producto.id_producto)}
+                >
                   <div className="product-image">
-                    <img
-                      src={
-                        producto.imagen_principal ||
-                        "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=400&fit=crop"
-                      }
+                    <ProductImage
+                      src={producto.imagen_principal}
                       alt={producto.nombre_producto}
                     />
                   </div>
-                  <div className="product-info">
+                  <div className="product-info card-producto">
                     <span className="category-badge">
                       {producto.nombre_categoria}
                     </span>
@@ -360,12 +468,22 @@ const Catalogo = () => {
                         {formatPrice(producto.precio)}
                       </span>
                     </div>
+                    {/* ✅ MENSAJE DE FEEDBACK */}
+                    {mensajesCarrito[producto.id_producto] && (
+                      <div
+                        className={`mensaje-carrito-catalogo ${
+                          mensajesCarrito[producto.id_producto].includes("✓")
+                            ? "Producto añadido al carrito"
+                            : "error"
+                        }`}
+                      >
+                        {mensajesCarrito[producto.id_producto]}
+                      </div>
+                    )}
+
                     <button
                       className="btn-add-cart"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        agregarAlCarrito(producto);
-                      }}
+                      onClick={(e) => agregarAlCarrito(e, producto)}
                     >
                       <ShoppingCart size={18} />
                       Agregar al Carrito
@@ -378,7 +496,6 @@ const Catalogo = () => {
         </main>
       </div>
 
-      {/* Mobile Sidebar */}
       <div
         className={`mobile-sidebar-overlay ${
           mobileSidebarOpen ? "active" : ""

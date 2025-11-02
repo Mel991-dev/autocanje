@@ -4,6 +4,7 @@ from routes.producto_routes import producto_bp
 from routes.catalogo_routes import catalogo_bp
 from routes.carrito_routes import carrito_bp
 from routes.compra_routes import compra_bp
+from routes.valoracion_routes import valoracion_bp
 import os
 
 app = Flask(__name__)
@@ -46,6 +47,7 @@ app.register_blueprint(producto_bp)
 app.register_blueprint(catalogo_bp)
 app.register_blueprint(carrito_bp)
 app.register_blueprint(compra_bp)
+app.register_blueprint(valoracion_bp)
 
 
 if __name__ == "__main__":

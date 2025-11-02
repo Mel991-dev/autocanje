@@ -1,4 +1,4 @@
-// frontend/src/pages/vendedor/ProductosPanel.jsx
+// frontend/src/pages/vendedor/ProductosPanel.jsx - CON FIX PARA IMÁGENES
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -12,17 +12,18 @@ import {
   X,
   Package,
   Image as ImageIcon,
+  Loader,
 } from "lucide-react";
 import "../../styles/vendedor/productosPanel.css";
-import "../../styles/perfil.css";
-import Perfil from "../users/perfil";
-import "../../styles/globals.css";
+
+const API_URL = "http://127.0.0.1:5000/api";
 
 const ProductosPanel = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [exito, setExito] = useState("");
+  const [procesando, setProcesando] = useState(false);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -31,7 +32,9 @@ const ProductosPanel = () => {
   const [categorias, setCategorias] = useState([]);
   const [tiposVehiculo, setTiposVehiculo] = useState([]);
 
-  // Estado para imágenes
+  // ✅ Estado para imágenes existentes (del servidor)
+  const [imagenesExistentes, setImagenesExistentes] = useState([]);
+  // Estado para nuevas imágenes a subir
   const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
   const [imagenesPreview, setImagenesPreview] = useState([]);
 
@@ -60,25 +63,18 @@ const ProductosPanel = () => {
   const cargarProductos = async () => {
     try {
       const token = localStorage.getItem("token");
-
       if (!token) {
         window.location.href = "/login";
         return;
       }
 
-      const response = await axios.get(
-        "http://127.0.0.1:5000/api/productos/mis-productos",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`${API_URL}/productos/mis-productos`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.data.success) {
         setProductos(response.data.productos);
       }
-
       setLoading(false);
     } catch (error) {
       console.error("Error al cargar productos:", error);
@@ -89,10 +85,7 @@ const ProductosPanel = () => {
 
   const cargarCategorias = async () => {
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:5000/api/productos/categorias"
-      );
-
+      const response = await axios.get(`${API_URL}/productos/categorias`);
       if (response.data.success) {
         setCategorias(response.data.categorias);
       }
@@ -103,10 +96,7 @@ const ProductosPanel = () => {
 
   const cargarTiposVehiculo = async () => {
     try {
-      const response = await axios.get(
-        "http://127.0.0.1:5000/api/productos/tipos-vehiculo"
-      );
-
+      const response = await axios.get(`${API_URL}/productos/tipos-vehiculo`);
       if (response.data.success) {
         setTiposVehiculo(response.data.tipos_vehiculo);
       }
@@ -123,26 +113,22 @@ const ProductosPanel = () => {
     }));
   };
 
-  // Manejo de imágenes
+  // ✅ Manejo de NUEVAS imágenes seleccionadas
   const handleImagenesChange = (e) => {
     const files = Array.from(e.target.files);
+    const totalImagenes = imagenesExistentes.length + imagenesSeleccionadas.length + files.length;
 
-    if (files.length + imagenesSeleccionadas.length > 5) {
-      setError("Máximo 5 imágenes permitidas");
+    if (totalImagenes > 5) {
+      setError(`Máximo 5 imágenes. Actualmente tienes ${imagenesExistentes.length + imagenesSeleccionadas.length}`);
       return;
     }
 
-    // Validar tamaño y tipo
     const validas = files.filter((file) => {
       if (file.size > 5 * 1024 * 1024) {
         setError(`${file.name} excede el tamaño máximo de 5MB`);
         return false;
       }
-      if (
-        !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
-          file.type
-        )
-      ) {
+      if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.type)) {
         setError(`${file.name} no es un formato válido`);
         return false;
       }
@@ -151,19 +137,46 @@ const ProductosPanel = () => {
 
     setImagenesSeleccionadas((prev) => [...prev, ...validas]);
 
-    // Crear previews
     validas.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagenesPreview((prev) => [...prev, reader.result]);
+        setImagenesPreview((prev) => [...prev, { url: reader.result, tipo: 'nueva' }]);
       };
       reader.readAsDataURL(file);
     });
   };
 
+  // ✅ Eliminar preview de NUEVA imagen
   const eliminarImagenPreview = (index) => {
     setImagenesSeleccionadas((prev) => prev.filter((_, i) => i !== index));
     setImagenesPreview((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ✅ Eliminar imagen EXISTENTE del servidor
+  const eliminarImagenExistente = async (id_imagen) => {
+    if (!window.confirm("¿Eliminar esta imagen?")) return;
+
+    setProcesando(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(
+        `${API_URL}/productos/imagenes/${id_imagen}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        setImagenesExistentes((prev) => prev.filter((img) => img.id_imagen_prod !== id_imagen));
+        setExito("Imagen eliminada correctamente");
+        setTimeout(() => setExito(""), 2000);
+      }
+    } catch (error) {
+      console.error("Error al eliminar imagen:", error);
+      setError(error.response?.data?.error || "Error al eliminar imagen");
+    } finally {
+      setProcesando(false);
+    }
   };
 
   const abrirModalCrear = () => {
@@ -180,6 +193,7 @@ const ProductosPanel = () => {
     });
     setImagenesSeleccionadas([]);
     setImagenesPreview([]);
+    setImagenesExistentes([]);
     setModalAbierto(true);
   };
 
@@ -190,6 +204,7 @@ const ProductosPanel = () => {
     setError("");
     setImagenesSeleccionadas([]);
     setImagenesPreview([]);
+    setImagenesExistentes([]);
   };
 
   const abrirModalEditar = async (producto) => {
@@ -205,31 +220,25 @@ const ProductosPanel = () => {
       pausado: producto.pausado,
     });
 
-    // ✅ Cargar imágenes existentes del producto
+    // ✅ Cargar imágenes existentes
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://127.0.0.1:5000/api/productos/${producto.id_producto}/imagenes`,
+        `${API_URL}/productos/${producto.id_producto}/imagenes`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
       if (response.data.success && response.data.imagenes.length > 0) {
-        // Convertir URLs de imágenes existentes a previews
-        const imagenesExistentes = response.data.imagenes.map(
-          (img) => img.url_imagen
-        );
-        setImagenesPreview(imagenesExistentes);
-        // No establecemos imagenesSeleccionadas porque son URLs, no archivos
+        setImagenesExistentes(response.data.imagenes);
       }
     } catch (error) {
       console.error("Error al cargar imágenes del producto:", error);
     }
 
     setImagenesSeleccionadas([]);
+    setImagenesPreview([]);
     setModalAbierto(true);
   };
 
@@ -263,7 +272,7 @@ const ProductosPanel = () => {
 
       if (modoEdicion) {
         const response = await axios.put(
-          `http://127.0.0.1:5000/api/productos/${productoEditando.id_producto}`,
+          `${API_URL}/productos/${productoEditando.id_producto}`,
           formData,
           {
             headers: {
@@ -274,7 +283,7 @@ const ProductosPanel = () => {
         );
 
         if (response.data.success) {
-          // Si hay imágenes nuevas, subirlas
+          // ✅ Si hay NUEVAS imágenes, subirlas
           if (imagenesSeleccionadas.length > 0) {
             await subirImagenes(productoEditando.id_producto);
           }
@@ -285,21 +294,16 @@ const ProductosPanel = () => {
           setTimeout(() => setExito(""), 3000);
         }
       } else {
-        const response = await axios.post(
-          "http://127.0.0.1:5000/api/productos/",
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await axios.post(`${API_URL}/productos/`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (response.data.success) {
           const idProducto = response.data.id_producto;
 
-          // Subir imágenes si hay
           if (imagenesSeleccionadas.length > 0) {
             await subirImagenes(idProducto);
           }
@@ -328,7 +332,7 @@ const ProductosPanel = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/api/productos/imagenes/subir",
+        `${API_URL}/productos/imagenes/subir`,
         formDataImages,
         {
           headers: {
@@ -352,7 +356,7 @@ const ProductosPanel = () => {
       const nuevoPausado = !producto.pausado;
 
       const response = await axios.patch(
-        `http://127.0.0.1:5000/api/productos/${producto.id_producto}/pausar`,
+        `${API_URL}/productos/${producto.id_producto}/pausar`,
         { pausado: nuevoPausado },
         {
           headers: {
@@ -387,7 +391,7 @@ const ProductosPanel = () => {
       const token = localStorage.getItem("token");
 
       const response = await axios.delete(
-        `http://127.0.0.1:5000/api/productos/${producto.id_producto}`,
+        `${API_URL}/productos/${producto.id_producto}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -409,10 +413,8 @@ const ProductosPanel = () => {
 
   if (loading) {
     return (
-      <div
-        style={{ display: "flex", justifyContent: "center", padding: "3rem" }}
-      >
-        <div className="spinner"></div>
+      <div style={{ display: "flex", justifyContent: "center", padding: "3rem" }}>
+        <Loader size={48} className="spinner" />
       </div>
     );
   }
@@ -445,22 +447,9 @@ const ProductosPanel = () => {
       <div className="card">
         {productos.length === 0 ? (
           <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
-            <Package
-              size={64}
-              style={{ color: "#d1d5db", margin: "0 auto 1.5rem" }}
-            />
-            <h3
-              style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                marginBottom: "0.5rem",
-              }}
-            >
-              No tienes productos publicados
-            </h3>
-            <p style={{ color: "#6b7280", marginBottom: "1.5rem" }}>
-              Comienza a vender publicando tu primer producto
-            </p>
+            <Package size={64} style={{ color: "#d1d5db", margin: "0 auto 1.5rem" }} />
+            <h3>No tienes productos publicados</h3>
+            <p>Comienza a vender publicando tu primer producto</p>
             <button className="btn btn-primary" onClick={abrirModalCrear}>
               <Plus size={20} />
               Crear Primer Producto
@@ -487,9 +476,7 @@ const ProductosPanel = () => {
                         <div className="product-image">
                           <Package size={24} />
                         </div>
-                        <span className="product-name">
-                          {producto.nombre_producto}
-                        </span>
+                        <span className="product-name">{producto.nombre_producto}</span>
                       </div>
                     </td>
                     <td>{producto.nombre_categoria || "-"}</td>
@@ -497,9 +484,7 @@ const ProductosPanel = () => {
                       ${parseFloat(producto.precio).toLocaleString()}
                     </td>
                     <td>
-                      <span
-                        className={producto.stock === 0 ? "stock-warning" : ""}
-                      >
+                      <span className={producto.stock === 0 ? "stock-warning" : ""}>
                         {producto.stock}
                       </span>
                     </td>
@@ -519,11 +504,7 @@ const ProductosPanel = () => {
                           onClick={() => togglePausarProducto(producto)}
                           title={producto.pausado ? "Activar" : "Pausar"}
                         >
-                          {producto.pausado ? (
-                            <Play size={18} />
-                          ) : (
-                            <Pause size={18} />
-                          )}
+                          {producto.pausado ? <Play size={18} /> : <Pause size={18} />}
                         </button>
                         <button
                           className="btn-icon"
@@ -564,24 +545,16 @@ const ProductosPanel = () => {
 
             <div className="modal-content">
               {error && (
-                <div
-                  className="alert alert-error"
-                  style={{ marginBottom: "1rem" }}
-                >
+                <div className="alert alert-error" style={{ marginBottom: "1rem" }}>
                   <span>{error}</span>
                 </div>
               )}
-
-              <p style={{ color: "#6b7280", marginBottom: "1.5rem" }}>
-                Completa la información del producto
-              </p>
 
               <form id="formProducto" onSubmit={handleSubmit}>
                 <div className="form-grid">
                   <div className="form-group full-width">
                     <label htmlFor="nombre_producto">
-                      Nombre del Producto{" "}
-                      <span style={{ color: "#dc2626" }}>*</span>
+                      Nombre del Producto <span style={{ color: "#dc2626" }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -595,23 +568,19 @@ const ProductosPanel = () => {
                   </div>
 
                   <div className="form-group full-width">
-                    <label htmlFor="descripcion">
-                      Descripción <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
+                    <label htmlFor="descripcion">Descripción *</label>
                     <textarea
                       id="descripcion"
                       name="descripcion"
                       value={formData.descripcion}
                       onChange={handleInputChange}
-                      placeholder="Describe las características, compatibilidad y condición del producto..."
+                      placeholder="Describe el producto..."
                       required
                     />
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="fk_categoria">
-                      Categoría <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
+                    <label htmlFor="fk_categoria">Categoría *</label>
                     <select
                       id="fk_categoria"
                       name="fk_categoria"
@@ -629,10 +598,7 @@ const ProductosPanel = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="fk_tipo_vehiculo">
-                      Tipo de Vehículo{" "}
-                      <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
+                    <label htmlFor="fk_tipo_vehiculo">Tipo de Vehículo *</label>
                     <select
                       id="fk_tipo_vehiculo"
                       name="fk_tipo_vehiculo"
@@ -650,9 +616,7 @@ const ProductosPanel = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="precio">
-                      Precio (COP) <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
+                    <label htmlFor="precio">Precio (COP) *</label>
                     <input
                       type="number"
                       id="precio"
@@ -667,10 +631,7 @@ const ProductosPanel = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="stock">
-                      Cantidad en Stock{" "}
-                      <span style={{ color: "#dc2626" }}>*</span>
-                    </label>
+                    <label htmlFor="stock">Cantidad en Stock *</label>
                     <input
                       type="number"
                       id="stock"
@@ -683,16 +644,94 @@ const ProductosPanel = () => {
                     />
                   </div>
 
-                  {/* SECCIÓN DE IMÁGENES */}
+                  {/* ✅ SECCIÓN DE IMÁGENES MEJORADA */}
                   <div className="form-group full-width">
                     <label>
-                      <ImageIcon
-                        size={16}
-                        style={{ display: "inline", marginRight: "0.5rem" }}
-                      />
+                      <ImageIcon size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
                       Imágenes del Producto (Máximo 5)
                     </label>
 
+                    {/* ✅ Mostrar imágenes EXISTENTES (si está en modo edición) */}
+                    {modoEdicion && imagenesExistentes.length > 0 && (
+                      <div style={{ marginBottom: "1rem" }}>
+                        <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
+                          Imágenes actuales ({imagenesExistentes.length}/5):
+                        </p>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                            gap: "0.75rem",
+                          }}
+                        >
+                          {imagenesExistentes.map((imagen) => (
+                            <div
+                              key={imagen.id_imagen_prod}
+                              style={{
+                                position: "relative",
+                                aspectRatio: "1",
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                border: imagen.es_principal ? "3px solid #007BFF" : "2px solid #e5e7eb",
+                              }}
+                            >
+                              <img
+                                src={imagen.url_imagen}
+                                alt="Imagen del producto"
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => eliminarImagenExistente(imagen.id_imagen_prod, productoEditando.id_producto)}
+                                disabled={procesando}
+                                style={{
+                                  position: "absolute",
+                                  top: "4px",
+                                  right: "4px",
+                                  background: "#dc2626",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "50%",
+                                  width: "24px",
+                                  height: "24px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  cursor: procesando ? "not-allowed" : "pointer",
+                                  padding: 0,
+                                  opacity: procesando ? 0.5 : 1,
+                                }}
+                              >
+                                {procesando ? <Loader size={14} className="spinner" /> : <X size={14} />}
+                              </button>
+                              {imagen.es_principal && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    bottom: "4px",
+                                    left: "4px",
+                                    background: "#007BFF",
+                                    color: "white",
+                                    padding: "2px 6px",
+                                    borderRadius: "4px",
+                                    fontSize: "0.65rem",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Principal
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ✅ Input para subir NUEVAS imágenes */}
                     <div className="upload-images-container">
                       <input
                         type="file"
@@ -718,26 +757,17 @@ const ProductosPanel = () => {
                           transition: "all 0.2s",
                           backgroundColor: "#f9fafb",
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = "#FFC107";
-                          e.currentTarget.style.backgroundColor = "#fffbeb";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = "#d1d5db";
-                          e.currentTarget.style.backgroundColor = "#f9fafb";
-                        }}
                       >
                         <Upload size={20} />
-                        <span>Seleccionar Imágenes</span>
+                        <span>Agregar Más Imágenes</span>
                       </label>
 
+                      {/* ✅ Previews de NUEVAS imágenes seleccionadas */}
                       {imagenesPreview.length > 0 && (
                         <div
-                          className="preview-images-grid"
                           style={{
                             display: "grid",
-                            gridTemplateColumns:
-                              "repeat(auto-fill, minmax(100px, 1fr))",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
                             gap: "0.75rem",
                             marginTop: "1rem",
                           }}
@@ -745,7 +775,6 @@ const ProductosPanel = () => {
                           {imagenesPreview.map((preview, index) => (
                             <div
                               key={index}
-                              className="preview-image-item"
                               style={{
                                 position: "relative",
                                 aspectRatio: "1",
@@ -755,7 +784,7 @@ const ProductosPanel = () => {
                               }}
                             >
                               <img
-                                src={preview}
+                                src={preview.url}
                                 alt={`Preview ${index + 1}`}
                                 style={{
                                   width: "100%",
@@ -785,7 +814,7 @@ const ProductosPanel = () => {
                               >
                                 <X size={14} />
                               </button>
-                              {index === 0 && (
+                              {index === 0 && imagenesExistentes.length === 0 && (
                                 <span
                                   style={{
                                     position: "absolute",
@@ -807,15 +836,11 @@ const ProductosPanel = () => {
                         </div>
                       )}
 
-                      <p
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "#6b7280",
-                          marginTop: "0.5rem",
-                        }}
-                      >
-                        Formatos: JPG, PNG, GIF, WEBP (máx. 5MB cada una). La
-                        primera imagen será la principal.
+                      <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.5rem" }}>
+                        Formatos: JPG, PNG, GIF, WEBP (máx. 5MB cada una). 
+                        {modoEdicion 
+                          ? " Puedes eliminar imágenes existentes y agregar nuevas."
+                          : " La primera imagen será la principal."}
                       </p>
                     </div>
                   </div>
@@ -824,18 +849,10 @@ const ProductosPanel = () => {
             </div>
 
             <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={cerrarModal}
-              >
+              <button type="button" className="btn btn-outline" onClick={cerrarModal}>
                 Cancelar
               </button>
-              <button
-                type="submit"
-                form="formProducto"
-                className="btn btn-primary"
-              >
+              <button type="submit" form="formProducto" className="btn btn-primary">
                 {modoEdicion ? "Guardar Cambios" : "Publicar Producto"}
               </button>
             </div>

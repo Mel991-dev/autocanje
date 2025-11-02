@@ -30,6 +30,15 @@ def subir_imagenes_producto(usuario_id):
     """
     Sube hasta 5 imágenes para un producto
     """
+    print("="*60)
+    print("🖼️ SUBIR IMÁGENES - DEBUG")
+    print(f"id_producto: {id_producto}")
+    print(f"usuario_id: {usuario_id}")
+    print(f"Imágenes actuales: {total_imagenes_actuales}")
+    print(f"Archivos recibidos: {len(files)}")
+    print(f"Tiene principal: {tiene_principal}")
+    print(f"Debe ser principal: {debe_ser_principal}")
+    print("="*60)
     if request.method == 'OPTIONS':
         return '', 204
     
@@ -58,7 +67,7 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No tienes permiso para subir imágenes a este producto'
             }), 403
         
-        # ✅ NUEVO: Verificar cuántas imágenes tiene el producto actualmente
+        # ✅ Verificar cuántas imágenes tiene el producto actualmente
         imagenes_actuales = obtener_imagenes_producto(id_producto)
         total_imagenes_actuales = len(imagenes_actuales)
         
@@ -71,7 +80,7 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No se enviaron imágenes'
             }), 400
         
-        # ✅ VALIDAR que no exceda las 5 imágenes totales
+        # ✅ Validar que no exceda las 5 imágenes totales
         total_imagenes_nuevas = total_imagenes_actuales + len(files)
         if total_imagenes_nuevas > 5:
             return jsonify({
@@ -80,10 +89,13 @@ def subir_imagenes_producto(usuario_id):
             }), 400
         
         urls_guardadas = []
-        # ✅ La primera imagen será principal solo si no hay imágenes previas
-        es_primera = (total_imagenes_actuales == 0)
         
-        for file in files:
+        # ✅ NUEVA LÓGICA: Solo la primera imagen será principal si NO hay imágenes previas
+        # Si ya hay imágenes, las nuevas NO serán principales
+        tiene_principal = any(img.get('es_principal') for img in imagenes_actuales)
+        debe_ser_principal = not tiene_principal  # Solo si no hay ninguna principal
+        
+        for index, file in enumerate(files):
             if file and allowed_file(file.filename):
                 # Validar tamaño
                 file.seek(0, os.SEEK_END)
@@ -106,22 +118,37 @@ def subir_imagenes_producto(usuario_id):
                 filepath = os.path.join(UPLOAD_FOLDER, nombre_unico)
                 file.save(filepath)
                 
-                # Guardar URL completa con el dominio del backend
+                # Guardar URL completa
                 url_imagen = f"http://127.0.0.1:5000/uploads/productos/{nombre_unico}"
                 
-                id_imagen = crear_imagen_producto(
-                    fk_producto=id_producto,
-                    url_imagen=url_imagen,
-                    es_principal=es_primera
-                )
+                # ✅ Solo la PRIMERA imagen nueva será principal, Y solo si no hay ninguna principal ya
+                es_principal_esta = debe_ser_principal and index == 0
                 
-                if id_imagen:
-                    urls_guardadas.append({
-                        'id': id_imagen,
-                        'url': url_imagen,
-                        'es_principal': es_primera
-                    })
-                    es_primera = False
+                try:
+                    id_imagen = crear_imagen_producto(
+                        fk_producto=id_producto,
+                        url_imagen=url_imagen,
+                        es_principal=es_principal_esta
+                    )
+                    
+                    if id_imagen:
+                        urls_guardadas.append({
+                            'id': id_imagen,
+                            'url': url_imagen,
+                            'es_principal': es_principal_esta
+                        })
+                    else:
+                        # Si falla crear_imagen_producto, eliminar el archivo
+                        if os.path.exists(filepath):
+                            os.remove(filepath)
+                        print(f"❌ Error al guardar imagen en BD: {nombre_unico}")
+                        
+                except Exception as e:
+                    # Si hay error, eliminar el archivo
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                    print(f"❌ Excepción al guardar imagen: {str(e)}")
+                    raise e
         
         if len(urls_guardadas) == 0:
             return jsonify({
@@ -136,13 +163,15 @@ def subir_imagenes_producto(usuario_id):
         }), 200
         
     except Exception as e:
-        print(f"Error al subir imágenes: {str(e)}")
+        print(f"❌ Error al subir imágenes: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
             'success': False,
             'error': f'Error al subir imágenes: {str(e)}'
         }), 500
+        
+        
 
 @token_requerido
 def eliminar_imagen_producto_controller(usuario_id, id_imagen):
@@ -153,73 +182,81 @@ def eliminar_imagen_producto_controller(usuario_id, id_imagen):
         return '', 204
     
     try:
-        # ✅ NUEVO: Verificar que la imagen pertenezca a un producto del usuario
         from config.database import conexion
         conn = conexion()
         cursor = conn.cursor(dictionary=True)
         
-        # Obtener información de la imagen y el producto
+        # Query sin filtrar por id_producto
         cursor.execute("""
-            SELECT ip.*, p.fk_vendedor, ip.url_imagen
+            SELECT 
+                ip.id_imagen_prod,
+                ip.fk_producto,
+                ip.url_imagen,
+                p.fk_vendedor
             FROM imagen_producto ip
             INNER JOIN producto p ON ip.fk_producto = p.id_producto
             WHERE ip.id_imagen_prod = %s
         """, (id_imagen,))
         
         imagen_info = cursor.fetchone()
-        cursor.close()
-        conn.close()
         
         if not imagen_info:
+            cursor.close()
+            conn.close()
             return jsonify({
                 'success': False,
                 'error': 'Imagen no encontrada'
             }), 404
         
-        # Verificar que el usuario sea el dueño del producto
+        # Verificar permisos
         if imagen_info['fk_vendedor'] != usuario_id:
+            cursor.close()
+            conn.close()
             return jsonify({
                 'success': False,
                 'error': 'No tienes permiso para eliminar esta imagen'
             }), 403
         
-        # ✅ Eliminar archivo físico del servidor
+        # Eliminar archivo físico
         url_imagen = imagen_info['url_imagen']
-        if url_imagen.startswith('http://127.0.0.1:5000/uploads/productos/'):
+        if url_imagen and url_imagen.startswith('http://127.0.0.1:5000/uploads/productos/'):
             nombre_archivo = url_imagen.split('/')[-1]
-            filepath = os.path.join(UPLOAD_FOLDER, nombre_archivo)
+            filepath = os.path.join('uploads/productos', nombre_archivo)
             
             if os.path.exists(filepath):
                 try:
                     os.remove(filepath)
-                    print(f"Archivo eliminado: {filepath}")
+                    print(f"✅ Archivo eliminado: {filepath}")
                 except Exception as e:
-                    print(f"Error al eliminar archivo físico: {str(e)}")
+                    print(f"⚠️ Error al eliminar archivo: {str(e)}")
         
-        # Eliminar registro de la base de datos
-        eliminado = eliminar_imagen_producto(id_imagen)
+        # Eliminar de BD
+        cursor.execute("DELETE FROM imagen_producto WHERE id_imagen_prod = %s", (id_imagen,))
+        conn.commit()
         
-        if not eliminado:
+        filas_afectadas = cursor.rowcount
+        cursor.close()
+        conn.close()
+        
+        if filas_afectadas > 0:
+            return jsonify({
+                'success': True,
+                'message': 'Imagen eliminada con éxito'
+            }), 200
+        else:
             return jsonify({
                 'success': False,
-                'error': 'Error al eliminar imagen de la base de datos'
+                'error': 'No se pudo eliminar'
             }), 500
         
-        return jsonify({
-            'success': True,
-            'message': 'Imagen eliminada con éxito'
-        }), 200
-        
     except Exception as e:
-        print(f"Error al eliminar imagen: {str(e)}")
+        print(f"❌ Error: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
             'success': False,
-            'error': f'Error al eliminar imagen: {str(e)}'
+            'error': str(e)
         }), 500
-
-
 @token_requerido
 def obtener_imagenes_producto_controller(usuario_id, id_producto):
     """

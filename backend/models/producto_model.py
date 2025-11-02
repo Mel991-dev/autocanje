@@ -1,5 +1,32 @@
 # models/producto_model.py
 from config.database import conexion
+from decimal import Decimal
+
+def convertir_valores_numericos(producto):
+    """
+    Convierte Decimal y otros tipos a float/int para JSON
+    """
+    if not producto:
+        return None
+    
+    # Convertir Decimals a float
+    if isinstance(producto.get('precio'), Decimal):
+        producto['precio'] = float(producto['precio'])
+    
+    if isinstance(producto.get('promedio_valoracion'), Decimal):
+        producto['promedio_valoracion'] = float(producto['promedio_valoracion'])
+    elif producto.get('promedio_valoracion') is None:
+        producto['promedio_valoracion'] = 0.0
+    
+    if isinstance(producto.get('stock'), Decimal):
+        producto['stock'] = int(producto['stock'])
+    
+    if isinstance(producto.get('valoraciones'), Decimal):
+        producto['valoraciones'] = int(producto['valoraciones'])
+    
+    return producto
+
+
 def crear_producto(fk_vendedor, fk_categoria, fk_tipo_vehiculo, nombre_producto, 
                    descripcion, precio, stock, pausado=False):
     """
@@ -316,30 +343,16 @@ def eliminar_imagen_producto(id_imagen):
         cursor.close()
         conn.close()
         return False
-    
+
+
 def obtener_productos_catalogo(filtros=None):
     """
     Obtiene productos del catálogo público con filtros avanzados
-    
-    Args:
-        filtros (dict): {
-            'busqueda': str,
-            'categoria': int,
-            'tipo_vehiculo': int,
-            'precio_min': float,
-            'precio_max': float,
-            'valoracion_min': float,
-            'orden': str ('precio_asc', 'precio_desc', 'valoracion', 'reciente')
-        }
-    
-    Returns:
-        list: Lista de productos con información completa
     """
     conn = conexion()
     cursor = conn.cursor(dictionary=True)
     
     try:
-        # Query base
         sql = """
             SELECT 
                 p.id_producto,
@@ -374,7 +387,7 @@ def obtener_productos_catalogo(filtros=None):
         
         # Aplicar filtros
         if filtros:
-# Búsqueda por nombre o descripción
+            # Búsqueda por nombre o descripción
             if filtros.get('busqueda'):
                 sql += " AND (p.nombre_producto LIKE %s OR p.descripcion LIKE %s)"
                 busqueda_param = f"%{filtros['busqueda']}%"
@@ -424,6 +437,9 @@ def obtener_productos_catalogo(filtros=None):
         cursor.execute(sql, params)
         productos = cursor.fetchall()
         
+        # ✅ CONVERTIR VALORES NUMÉRICOS PARA CADA PRODUCTO
+        productos = [convertir_valores_numericos(p) for p in productos]
+        
         cursor.close()
         conn.close()
         
@@ -469,6 +485,9 @@ def obtener_producto_detalle(id_producto):
         producto = cursor.fetchone()
         
         if producto:
+            # ✅ CONVERTIR VALORES NUMÉRICOS
+            producto = convertir_valores_numericos(producto)
+            
             # Obtener imágenes del producto
             imagenes = obtener_imagenes_producto(id_producto)
             producto['imagenes'] = imagenes
@@ -484,7 +503,6 @@ def obtener_producto_detalle(id_producto):
         conn.close()
         return None
 
-# AGREGAR ESTA FUNCIÓN AL ARCHIVO producto_model.py
 
 def obtener_valoraciones_producto(id_producto):
     """
@@ -520,6 +538,7 @@ def obtener_valoraciones_producto(id_producto):
         cursor.close()
         conn.close()
         return []
+
 
 def obtener_estadisticas_catalogo():
     """
@@ -687,6 +706,9 @@ def obtener_productos_relacionados(id_producto, limite=4):
         
         relacionados = cursor.fetchall()
         
+        # ✅ CONVERTIR VALORES NUMÉRICOS PARA PRODUCTOS RELACIONADOS
+        relacionados = [convertir_valores_numericos(p) for p in relacionados]
+        
         cursor.close()
         conn.close()
         
@@ -701,7 +723,7 @@ def obtener_productos_relacionados(id_producto, limite=4):
 
 def obtener_productos_mas_vendidos(limite=10):
     """
-    Obtiene los productos más vendidos (placeholder - cuando implementes ventas)
+    Obtiene los productos más vendidos
     Por ahora retorna los mejor valorados
     """
     conn = conexion()

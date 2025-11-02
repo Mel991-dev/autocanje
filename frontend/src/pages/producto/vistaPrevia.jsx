@@ -36,12 +36,22 @@ const VistaPrevia = () => {
   const [activeTab, setActiveTab] = useState("description");
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Agregar estados de agregar al carrito agregar al carrito
+  // Estados de agregar al carrito
   const [agregandoCarrito, setAgregandoCarrito] = useState(false);
   const [mensajeCarrito, setMensajeCarrito] = useState("");
 
+  // ✅ ESTADOS PARA RESEÑAS
+  const [puedeValorar, setPuedeValorar] = useState(false);
+  const [yaValoro, setYaValoro] = useState(false);
+  const [mostrarFormReview, setMostrarFormReview] = useState(false);
+  const [calificacionNueva, setCalificacionNueva] = useState(0);
+  const [comentarioNuevo, setComentarioNuevo] = useState("");
+  const [enviandoReview, setEnviandoReview] = useState(false);
+  const [valoraciones, setValoraciones] = useState([]);
+
   useEffect(() => {
     cargarProducto();
+    verificarPermisosValoracion();
   }, [id]);
 
   const cargarProducto = async () => {
@@ -54,6 +64,9 @@ const VistaPrevia = () => {
       if (response.data.success) {
         setProducto(response.data.producto);
         setRelacionados(response.data.relacionados || []);
+
+        // ✅ Cargar valoraciones del producto
+        cargarValoraciones();
       } else {
         setError(response.data.error || "Producto no encontrado");
       }
@@ -62,6 +75,120 @@ const VistaPrevia = () => {
       setError("Error al cargar el producto");
     } finally {
       setLoading(false);
+    }
+  };
+
+    const formatPrice = (price) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const formatRating = (rating) => {
+    const numRating = parseFloat(rating);
+    return isNaN(numRating) ? "0.0" : numRating.toFixed(1);
+  };
+
+  // ✅ NUEVA FUNCIÓN: Cargar valoraciones
+  const cargarValoraciones = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/valoraciones/producto/${id}`
+      );
+
+      if (response.data.success) {
+        setValoraciones(response.data.valoraciones || []);
+      }
+    } catch (err) {
+      console.error("Error al cargar valoraciones:", err);
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Verificar permisos de valoración
+  const verificarPermisosValoracion = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setPuedeValorar(false);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${API_URL}/valoraciones/permisos/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setPuedeValorar(response.data.puede_valorar);
+        setYaValoro(response.data.ya_valoro);
+      }
+    } catch (err) {
+      console.error("Error al verificar permisos:", err);
+      setPuedeValorar(false);
+    }
+  };
+
+  // ✅ NUEVA FUNCIÓN: Enviar reseña
+  const handleEnviarReview = async (e) => {
+    e.preventDefault();
+
+    if (calificacionNueva === 0) {
+      alert("Debes seleccionar una calificación");
+      return;
+    }
+
+    if (comentarioNuevo.trim().length < 10) {
+      alert("El comentario debe tener al menos 10 caracteres");
+      return;
+    }
+
+    setEnviandoReview(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        `${API_URL}/valoraciones/`,
+        {
+          fk_producto: producto.id_producto,
+          calificacion: calificacionNueva,
+          comentario: comentarioNuevo.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert("¡Reseña publicada con éxito!");
+
+        // Actualizar estados
+        setYaValoro(true);
+        setPuedeValorar(false);
+        setMostrarFormReview(false);
+        setCalificacionNueva(0);
+        setComentarioNuevo("");
+
+        // Recargar producto y valoraciones
+        cargarProducto();
+        verificarPermisosValoracion();
+      } else {
+        alert(response.data.error || "Error al publicar reseña");
+      }
+    } catch (err) {
+      console.error("Error al enviar reseña:", err);
+      alert(err.response?.data?.error || "Error al publicar reseña");
+    } finally {
+      setEnviandoReview(false);
     }
   };
 
@@ -80,7 +207,6 @@ const VistaPrevia = () => {
     setActiveTab(tab);
   };
 
-  //Agregar al carrito con backend
   const handleAddToCart = async () => {
     const token = localStorage.getItem("token");
 
@@ -110,7 +236,6 @@ const VistaPrevia = () => {
       if (response.data.success) {
         setMensajeCarrito(`✓ ${quantity} producto(s) agregado(s) al carrito`);
 
-        // Resetear cantidad después de agregar
         setTimeout(() => {
           setQuantity(1);
           setMensajeCarrito("");
@@ -131,9 +256,7 @@ const VistaPrevia = () => {
   };
 
   const handleBuyNow = async () => {
-    // Primero agregar al carrito
     await handleAddToCart();
-    // Luego redirigir al carrito
     setTimeout(() => navigate("/carrito"), 1000);
   };
 
@@ -160,14 +283,6 @@ const VistaPrevia = () => {
     ));
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
   const calcularDescuento = (precioActual, precioOriginal) => {
     if (!precioOriginal || precioOriginal <= precioActual) return 0;
     return Math.round(((precioOriginal - precioActual) / precioOriginal) * 100);
@@ -178,7 +293,6 @@ const VistaPrevia = () => {
     return Math.min((stock / maxStock) * 100, 100);
   };
 
-  // ✅ Componente para renderizar imagen con fallback mejorado
   const ProductImageWithFallback = ({ src, alt, className = "" }) => {
     const [imageError, setImageError] = useState(false);
 
@@ -217,7 +331,6 @@ const VistaPrevia = () => {
     );
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="vista-previa-container">
@@ -241,7 +354,6 @@ const VistaPrevia = () => {
     );
   }
 
-  // Error state
   if (error || !producto) {
     return (
       <div className="vista-previa-container">
@@ -261,11 +373,10 @@ const VistaPrevia = () => {
     );
   }
 
-  // ✅ Procesar imágenes con fallback
   const imagenes =
     producto.imagenes && producto.imagenes.length > 0
       ? producto.imagenes
-      : null; // Si no hay imágenes, será null
+      : null;
 
   const descuento = calcularDescuento(producto.precio, producto.precio * 1.33);
   const stockPercentage = calcularStockPercentage(producto.stock);
@@ -297,7 +408,6 @@ const VistaPrevia = () => {
     <div className="vista-previa-container">
       <Header />
 
-      {/* Breadcrumb */}
       <nav className="breadcrumb">
         <a href="/">Inicio</a>
         <span>/</span>
@@ -310,9 +420,7 @@ const VistaPrevia = () => {
         <span className="current">{producto.nombre_producto}</span>
       </nav>
 
-      {/* Layout del producto */}
       <div className="product-layout">
-        {/* Galería de imágenes */}
         <div className="product-images">
           <div className="main-image">
             {imagenes ? (
@@ -347,7 +455,6 @@ const VistaPrevia = () => {
           )}
         </div>
 
-        {/* Información del producto */}
         <div className="product-info info-catalogo">
           <div className="product-header">
             <div>
@@ -446,11 +553,10 @@ const VistaPrevia = () => {
                 </button>
               </div>
 
-              {/* ✅ MENSAJE DE FEEDBACK */}
               {mensajeCarrito && (
                 <div
                   className={`mensaje-carrito ${
-                    mensajeCarrito.includes("✓") ? "Producto añadido al carrito" : "error"
+                    mensajeCarrito.includes("✓") ? "exito" : "error"
                   }`}
                 >
                   {mensajeCarrito}
@@ -504,7 +610,6 @@ const VistaPrevia = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="tabs">
         <div className="tabs-list">
           <button
@@ -563,6 +668,7 @@ const VistaPrevia = () => {
           <div className="tab-content">
             <div className="description-card">
               <h2 className="description-title">Reseñas de Clientes</h2>
+
               <div className="reviews-header">
                 <div className="reviews-score">
                   <div className="big-rating">
@@ -577,27 +683,189 @@ const VistaPrevia = () => {
                 </div>
 
                 <div className="reviews-breakdown">
-                  {[5, 4, 3, 2, 1].map((stars) => (
-                    <div key={stars} className="breakdown-row">
-                      <span className="breakdown-label">{stars}★</span>
-                      <div className="breakdown-bar">
-                        <div
-                          className="breakdown-fill"
-                          style={{ width: `${Math.random() * 100}%` }}
-                        />
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const totalReviews = producto.valoraciones || 1;
+                    const reviewsWithStars = valoraciones.filter(
+                      (r) => r.calificacion === stars
+                    ).length;
+                    const percentage = (reviewsWithStars / totalReviews) * 100;
+
+                    return (
+                      <div key={stars} className="breakdown-row">
+                        <span className="breakdown-label">{stars}★</span>
+                        <div className="breakdown-bar">
+                          <div
+                            className="breakdown-fill"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span className="breakdown-percent">
+                          {Math.round(percentage)}%
+                        </span>
                       </div>
-                      <span className="breakdown-percent">
-                        {Math.floor(Math.random() * 100)}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
+              {/* ✅ BOTÓN PARA ESCRIBIR RESEÑA */}
+              {puedeValorar && !mostrarFormReview && (
+                <div style={{ marginTop: "2rem", marginBottom: "2rem" }}>
+                  <button
+                    onClick={() => setMostrarFormReview(true)}
+                    className="btn btn-primary"
+                    style={{ width: "100%", maxWidth: "300px" }}
+                  >
+                    <Star size={18} />
+                    Escribir una reseña
+                  </button>
+                </div>
+              )}
+
+              {/* ✅ MENSAJE SI YA VALORÓ */}
+              {yaValoro && (
+                <div
+                  style={{
+                    padding: "1rem",
+                    background: "#dcfce7",
+                    border: "1px solid #bbf7d0",
+                    borderRadius: "8px",
+                    color: "#166534",
+                    marginTop: "1rem",
+                    marginBottom: "2rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <CheckCircle size={20} />
+                  <span>Ya has valorado este producto</span>
+                </div>
+              )}
+
+              {/* ✅ FORMULARIO DE RESEÑA */}
+              {mostrarFormReview && (
+                <form
+                  onSubmit={handleEnviarReview}
+                  style={{
+                    background: "#f9fafb",
+                    padding: "2rem",
+                    borderRadius: "12px",
+                    marginTop: "2rem",
+                    marginBottom: "2rem",
+                    border: "2px solid #007BFF",
+                  }}
+                >
+                  <h3 style={{ marginBottom: "1.5rem", fontSize: "1.25rem" }}>
+                    Escribe tu reseña
+                  </h3>
+
+                  {/* Selector de estrellas */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontWeight: 600,
+                        marginBottom: "0.75rem",
+                        color: "#374151",
+                      }}
+                    >
+                      Calificación *
+                    </label>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size={32}
+                          style={{ cursor: "pointer" }}
+                          fill={star <= calificacionNueva ? "#FFC107" : "none"}
+                          color={
+                            star <= calificacionNueva ? "#FFC107" : "#d1d5db"
+                          }
+                          onClick={() => setCalificacionNueva(star)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Comentario */}
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <label
+                      style={{
+                        display: "block",
+                        fontWeight: 600,
+                        marginBottom: "0.75rem",
+                        color: "#374151",
+                      }}
+                    >
+                      Comentario * (mínimo 10 caracteres)
+                    </label>
+                    <textarea
+                      value={comentarioNuevo}
+                      onChange={(e) => setComentarioNuevo(e.target.value)}
+                      placeholder="Comparte tu experiencia con este producto..."
+                      rows={5}
+                      maxLength={500}
+                      style={{
+                        width: "100%",
+                        padding: "0.75rem",
+                        border: "1px solid #d1d5db",
+                        borderRadius: "8px",
+                        fontFamily: "inherit",
+                        fontSize: "0.95rem",
+                        resize: "vertical",
+                      }}
+                      required
+                    />
+                    <small style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+                      {comentarioNuevo.length}/500 caracteres
+                    </small>
+                  </div>
+
+                  {/* Botones */}
+                  <div style={{ display: "flex", gap: "1rem" }}>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={
+                        enviandoReview ||
+                        calificacionNueva === 0 ||
+                        comentarioNuevo.length < 10
+                      }
+                      style={{ flex: 1 }}
+                    >
+                      {enviandoReview ? (
+                        <>
+                          <Loader size={18} className="spinner" />
+                          Publicando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle size={18} />
+                          Publicar Reseña
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMostrarFormReview(false);
+                        setCalificacionNueva(0);
+                        setComentarioNuevo("");
+                      }}
+                      className="btn btn-secondary"
+                      style={{ flex: 1 }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* ✅ LISTA DE RESEÑAS */}
               <div className="reviews-list">
-                {producto.valoraciones_detalle &&
-                producto.valoraciones_detalle.length > 0 ? (
-                  producto.valoraciones_detalle.map((review) => (
+                {valoraciones && valoraciones.length > 0 ? (
+                  valoraciones.map((review) => (
                     <div key={review.id_valoracion} className="review-item">
                       <div className="review-header">
                         <img
@@ -618,7 +886,6 @@ const VistaPrevia = () => {
                         </div>
                       </div>
                       <p className="review-text">{review.comentario}</p>
-                      <button className="review-helpful">Útil (0)</button>
                     </div>
                   ))
                 ) : (
@@ -639,7 +906,6 @@ const VistaPrevia = () => {
         )}
       </div>
 
-      {/* Productos relacionados */}
       {relacionados.length > 0 && (
         <div style={{ margin: "3rem 1rem" }}>
           <h2
@@ -697,7 +963,6 @@ const VistaPrevia = () => {
           </div>
         </div>
       )}
-
       <Footer />
     </div>
   );

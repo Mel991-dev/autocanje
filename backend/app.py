@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request, make_response
 from routes.auth_routes import auth_bp
 from routes.producto_routes import producto_bp
 from routes.catalogo_routes import catalogo_bp
@@ -14,7 +14,6 @@ app = Flask(__name__)
 def uploaded_file(filename):
     return send_from_directory('uploads/productos', filename)
 
-# AGREGAR: Endpoint alternativo para compatibilidad
 @app.route('/uploads/<path:filename>')
 def uploaded_file_legacy(filename):
     """Endpoint de compatibilidad para rutas antiguas"""
@@ -24,24 +23,28 @@ def uploaded_file_legacy(filename):
     # Si no, busca en la raíz de uploads/
     return send_from_directory('uploads', filename)
 
+# ✅ MEJORADO: Manejo completo de CORS con PATCH incluido
 @app.before_request
 def handle_preflight():
-    from flask import request
+    """Maneja las peticiones OPTIONS (preflight) para CORS"""
     if request.method == "OPTIONS":
-        from flask import make_response
         response = make_response()
         response.headers['Access-Control-Allow-Origin'] = '*'
-        response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        response.headers['Access-Control-Max-Age'] = '3600'
         return response, 200
 
 @app.after_request
 def after_request(response):
+    """Agrega headers CORS a todas las respuestas"""
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    response.headers['Access-Control-Max-Age'] = '3600'
     return response
 
+# Registrar blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(producto_bp)
 app.register_blueprint(catalogo_bp)
@@ -49,8 +52,14 @@ app.register_blueprint(carrito_bp)
 app.register_blueprint(compra_bp)
 app.register_blueprint(valoracion_bp)
 
-
 if __name__ == "__main__":
     # Crear carpeta de uploads si no existe
     os.makedirs('uploads/productos', exist_ok=True)
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    
+    # Configuración de desarrollo
+    app.run(
+        debug=True,
+        host='127.0.0.1',
+        port=5000,
+        threaded=True  # Permite múltiples peticiones simultáneas
+    )

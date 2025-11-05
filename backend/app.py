@@ -25,3 +25,7 @@ app.register_blueprint(auth_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, host='127.0.0.1', port=5000)
+    
+    from routes.membresias_routes import membresias_routes
+
+app.register_blueprint(membresias_routes)

@@ -4,7 +4,7 @@ import React from 'react';
 import '../styles/home.css';
 import Header from '../components/header';
 import Footer from '../components/footer';
-import ZhuYuan from '../assets/images/fotoHome.jpg';
+import fotoHome from '../assets/home.png';
 import { 
   Star, 
   Shield, 
@@ -118,7 +118,7 @@ const Home = () => {
           {/* Imagen del hero */}
           <div className="home-hero-image">
             <img 
-              src={ZhuYuan}
+              src={fotoHome}
               alt="Partes vehiculares en estantería"
             />
           </div>

@@ -15,6 +15,7 @@ import Carrito from "./pages/producto/Carrito";
 import VistaPrevia from "./pages/producto/vistaPrevia";
 import Checkout from "./pages/checkout/Checkout";
 import Comprobante from "./pages/checkout/Comprobante";
+import PremiumPage from "./pages/premiumPage";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/checkout/comprobante/:id" element={<Comprobante />} />
+        <Route path="/premium" element={<PremiumPage />} />
       </Routes>
     </Router>
   );

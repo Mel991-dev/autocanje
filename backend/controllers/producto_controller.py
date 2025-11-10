@@ -8,14 +8,13 @@ from models.producto_model import (
 )
 from utils.auth_middleware import token_requerido
 import os
-import base64
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
 # Configuración de subida de archivos
 UPLOAD_FOLDER = 'uploads/productos'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
-MAX_FILE_SIZE =  5 * 1024 * 1024 #5MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Crear carpeta si no existe
 if not os.path.exists(UPLOAD_FOLDER):
@@ -30,15 +29,6 @@ def subir_imagenes_producto(usuario_id):
     """
     Sube hasta 5 imágenes para un producto
     """
-    print("="*60)
-    print("🖼️ SUBIR IMÁGENES - DEBUG")
-    print(f"id_producto: {id_producto}")
-    print(f"usuario_id: {usuario_id}")
-    print(f"Imágenes actuales: {total_imagenes_actuales}")
-    print(f"Archivos recibidos: {len(files)}")
-    print(f"Tiene principal: {tiene_principal}")
-    print(f"Debe ser principal: {debe_ser_principal}")
-    print("="*60)
     if request.method == 'OPTIONS':
         return '', 204
     
@@ -67,7 +57,7 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No tienes permiso para subir imágenes a este producto'
             }), 403
         
-        # ✅ Verificar cuántas imágenes tiene el producto actualmente
+        # Verificar cuántas imágenes tiene el producto actualmente
         imagenes_actuales = obtener_imagenes_producto(id_producto)
         total_imagenes_actuales = len(imagenes_actuales)
         
@@ -80,7 +70,16 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No se enviaron imágenes'
             }), 400
         
-        # ✅ Validar que no exceda las 5 imágenes totales
+        # ✅ DEBUG después de obtener todas las variables
+        print("=" * 60)
+        print("🖼️ SUBIR IMÁGENES - DEBUG")
+        print(f"id_producto: {id_producto}")
+        print(f"usuario_id: {usuario_id}")
+        print(f"Imágenes actuales: {total_imagenes_actuales}")
+        print(f"Archivos recibidos: {len(files)}")
+        print("=" * 60)
+        
+        # Validar que no exceda las 5 imágenes totales
         total_imagenes_nuevas = total_imagenes_actuales + len(files)
         if total_imagenes_nuevas > 5:
             return jsonify({
@@ -90,10 +89,9 @@ def subir_imagenes_producto(usuario_id):
         
         urls_guardadas = []
         
-        # ✅ NUEVA LÓGICA: Solo la primera imagen será principal si NO hay imágenes previas
-        # Si ya hay imágenes, las nuevas NO serán principales
+        # Solo la primera imagen será principal si NO hay imágenes previas
         tiene_principal = any(img.get('es_principal') for img in imagenes_actuales)
-        debe_ser_principal = not tiene_principal  # Solo si no hay ninguna principal
+        debe_ser_principal = not tiene_principal
         
         for index, file in enumerate(files):
             if file and allowed_file(file.filename):
@@ -118,11 +116,16 @@ def subir_imagenes_producto(usuario_id):
                 filepath = os.path.join(UPLOAD_FOLDER, nombre_unico)
                 file.save(filepath)
                 
+                print(f"✅ Archivo guardado en: {filepath}")
+                
                 # Guardar URL completa
                 url_imagen = f"http://127.0.0.1:5000/uploads/productos/{nombre_unico}"
                 
-                # ✅ Solo la PRIMERA imagen nueva será principal, Y solo si no hay ninguna principal ya
+                # Solo la PRIMERA imagen nueva será principal, Y solo si no hay ninguna principal ya
                 es_principal_esta = debe_ser_principal and index == 0
+                
+                print(f"📝 Guardando en BD: {url_imagen}")
+                print(f"   Es principal: {es_principal_esta}")
                 
                 try:
                     id_imagen = crear_imagen_producto(
@@ -137,6 +140,7 @@ def subir_imagenes_producto(usuario_id):
                             'url': url_imagen,
                             'es_principal': es_principal_esta
                         })
+                        print(f"✅ Imagen guardada en BD con ID: {id_imagen}")
                     else:
                         # Si falla crear_imagen_producto, eliminar el archivo
                         if os.path.exists(filepath):
@@ -156,6 +160,9 @@ def subir_imagenes_producto(usuario_id):
                 'error': 'No se pudieron guardar las imágenes'
             }), 500
         
+        print(f"✅ Total de imágenes guardadas: {len(urls_guardadas)}")
+        print("=" * 60)
+        
         return jsonify({
             'success': True,
             'message': f'{len(urls_guardadas)} imagen(es) subida(s) con éxito',
@@ -170,8 +177,7 @@ def subir_imagenes_producto(usuario_id):
             'success': False,
             'error': f'Error al subir imágenes: {str(e)}'
         }), 500
-        
-        
+
 
 @token_requerido
 def eliminar_imagen_producto_controller(usuario_id, id_imagen):
@@ -186,7 +192,7 @@ def eliminar_imagen_producto_controller(usuario_id, id_imagen):
         conn = conexion()
         cursor = conn.cursor(dictionary=True)
         
-        # Query sin filtrar por id_producto
+        # Obtener información de la imagen y verificar permisos
         cursor.execute("""
             SELECT 
                 ip.id_imagen_prod,
@@ -257,6 +263,8 @@ def eliminar_imagen_producto_controller(usuario_id, id_imagen):
             'success': False,
             'error': str(e)
         }), 500
+
+
 @token_requerido
 def obtener_imagenes_producto_controller(usuario_id, id_producto):
     """
@@ -266,7 +274,7 @@ def obtener_imagenes_producto_controller(usuario_id, id_producto):
         return '', 204
     
     try:
-        # ✅ Verificar que el producto exista y pertenezca al usuario
+        # Verificar que el producto exista y pertenezca al usuario
         producto = obtener_producto_por_id(id_producto)
         
         if not producto:
@@ -294,6 +302,7 @@ def obtener_imagenes_producto_controller(usuario_id, id_producto):
             'success': False,
             'error': 'Error al obtener imágenes'
         }), 500
+
 
 @token_requerido
 def crear_producto_controller(usuario_id):
@@ -397,67 +406,163 @@ def obtener_mis_productos(usuario_id):
 @token_requerido
 def actualizar_producto_controller(usuario_id, id_producto):
     """
-    Actualiza un producto existente
+    Actualiza un producto existente (solo datos, NO imágenes)
+    Las imágenes se manejan por separado en subir_imagenes_producto()
     """
     if request.method == 'OPTIONS':
         return '', 204
     
+    print("\n" + "="*70)
+    print("🔧 ACTUALIZAR PRODUCTO - Backend")
+    print("="*70)
+    
     try:
-        # Verificar que el producto pertenezca al vendedor
+        print(f"📋 Método: {request.method}")
+        print(f"📋 Content-Type: {request.content_type}")
+        print(f"📋 ID Producto: {id_producto}")
+        print(f"📋 Usuario ID: {usuario_id}")
+        
+        # 1. Verificar que el producto existe
         producto = obtener_producto_por_id(id_producto)
         
         if not producto:
+            print("❌ ERROR: Producto no encontrado")
             return jsonify({
                 'success': False,
                 'error': 'Producto no encontrado'
             }), 404
         
+        print(f"✅ Producto encontrado: {producto.get('nombre_producto')}")
+        
+        # 2. Verificar permisos
         if producto['fk_vendedor'] != usuario_id:
+            print(f"❌ ERROR: Usuario {usuario_id} no es dueño del producto")
             return jsonify({
                 'success': False,
                 'error': 'No tienes permiso para editar este producto'
             }), 403
         
-        data = request.get_json() or {}
+        print("✅ Permisos verificados")
         
-        # Campos permitidos para actualizar
+        # 3. Obtener datos del JSON
+        data = request.get_json()
+        
+        if not data:
+            print("❌ ERROR: No se recibieron datos")
+            return jsonify({
+                'success': False,
+                'error': 'No se recibieron datos'
+            }), 400
+        
+        print(f"\n📦 Datos recibidos (RAW):")
+        for key, value in data.items():
+            print(f"   {key}: {value} ({type(value).__name__})")
+        
+        # 4. Campos permitidos
         campos_permitidos = {
             'nombre_producto', 'descripcion', 'fk_categoria', 
             'fk_tipo_vehiculo', 'precio', 'stock', 'pausado'
         }
         
-        datos_actualizacion = {
-            campo: data[campo] 
-            for campo in campos_permitidos 
-            if campo in data
-        }
+        # 5. Filtrar y normalizar datos
+        datos_actualizacion = {}
         
-        # Validaciones
+        for campo in campos_permitidos:
+            if campo not in data:
+                continue
+            
+            valor = data[campo]
+            
+            # Normalización por tipo de campo
+            try:
+                if campo == 'nombre_producto' or campo == 'descripcion':
+                    # Strings
+                    datos_actualizacion[campo] = str(valor).strip() if valor else ''
+                    
+                elif campo == 'fk_categoria':
+                    # Entero requerido
+                    datos_actualizacion[campo] = int(valor)
+                    
+                elif campo == 'fk_tipo_vehiculo':
+                    # Entero opcional (puede ser NULL)
+                    datos_actualizacion[campo] = int(valor) if valor else None
+                    
+                elif campo == 'precio':
+                    # Float positivo
+                    datos_actualizacion[campo] = float(valor)
+                    
+                elif campo == 'stock':
+                    # Entero no negativo
+                    datos_actualizacion[campo] = int(valor)
+                    
+                elif campo == 'pausado':
+                    # Boolean
+                    if isinstance(valor, bool):
+                        datos_actualizacion[campo] = valor
+                    elif isinstance(valor, str):
+                        datos_actualizacion[campo] = valor.lower() in ['true', '1', 'yes']
+                    else:
+                        datos_actualizacion[campo] = bool(valor)
+                        
+            except (ValueError, TypeError) as e:
+                print(f"⚠️ Error normalizando {campo}: {e}")
+                return jsonify({
+                    'success': False,
+                    'error': f'Formato inválido en campo: {campo}'
+                }), 400
+        
+        print(f"\n🔄 Datos normalizados:")
+        for campo, valor in datos_actualizacion.items():
+            print(f"   {campo}: {valor} ({type(valor).__name__})")
+        
+        # 6. Validar que haya algo que actualizar
+        if not datos_actualizacion:
+            print("❌ ERROR: No hay campos para actualizar")
+            return jsonify({
+                'success': False,
+                'error': 'No hay campos para actualizar'
+            }), 400
+        
+        # 7. Validaciones de negocio
         if 'precio' in datos_actualizacion:
-            if float(datos_actualizacion['precio']) <= 0:
+            if datos_actualizacion['precio'] <= 0:
+                print(f"❌ ERROR: Precio inválido: {datos_actualizacion['precio']}")
                 return jsonify({
                     'success': False,
                     'error': 'El precio debe ser mayor a cero'
                 }), 400
         
         if 'stock' in datos_actualizacion:
-            if int(datos_actualizacion['stock']) < 0:
+            if datos_actualizacion['stock'] < 0:
+                print(f"❌ ERROR: Stock negativo: {datos_actualizacion['stock']}")
                 return jsonify({
                     'success': False,
                     'error': 'El stock no puede ser negativo'
                 }), 400
         
-        # Actualizar
+        print("\n✅ Todas las validaciones pasadas")
+        
+        # 8. Actualizar en BD
+        print(f"\n💾 Actualizando producto en BD...")
         actualizado = actualizar_producto(id_producto, datos_actualizacion)
         
         if not actualizado:
+            print("❌ ERROR: No se pudo actualizar")
             return jsonify({
                 'success': False,
-                'error': 'Error al actualizar el producto'
+                'error': 'Error al actualizar el producto en la base de datos'
             }), 500
         
-        # Obtener producto actualizado
+        print("✅ Producto actualizado en BD")
+        
+        # 9. Obtener producto actualizado
         producto_actualizado = obtener_producto_por_id(id_producto)
+        
+        print("\n" + "="*70)
+        print("✅✅✅ ACTUALIZACIÓN EXITOSA ✅✅✅")
+        print(f"   Producto: {producto_actualizado.get('nombre_producto')}")
+        print(f"   Campos actualizados: {len(datos_actualizacion)}")
+        print("="*70 + "\n")
         
         return jsonify({
             'success': True,
@@ -466,12 +571,20 @@ def actualizar_producto_controller(usuario_id, id_producto):
         }), 200
         
     except Exception as e:
-        print(f"Error al actualizar producto: {str(e)}")
+        print("\n" + "="*70)
+        print("❌❌❌ ERROR CRÍTICO ❌❌❌")
+        print("="*70)
+        print(f"Tipo: {type(e).__name__}")
+        print(f"Mensaje: {str(e)}")
+        
         import traceback
+        print("\n📜 Stack trace:")
         traceback.print_exc()
+        print("="*70 + "\n")
+        
         return jsonify({
             'success': False,
-            'error': f'Error al actualizar producto: {str(e)}'
+            'error': f'Error interno del servidor: {str(e)}'
         }), 500
 
 

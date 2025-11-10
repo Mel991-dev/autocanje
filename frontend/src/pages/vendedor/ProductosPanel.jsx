@@ -1,4 +1,4 @@
-// frontend/src/pages/vendedor/ProductosPanel.jsx - CON FIX PARA IMÁGENES
+// frontend/src/pages/vendedor/ProductosPanel.jsx - VERSIÓN CORREGIDA
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
@@ -32,12 +32,12 @@ const ProductosPanel = () => {
   const [categorias, setCategorias] = useState([]);
   const [tiposVehiculo, setTiposVehiculo] = useState([]);
 
-  // ✅ Estado para imágenes existentes (del servidor)
+  // ✅ Estados para manejo de imágenes
   const [imagenesExistentes, setImagenesExistentes] = useState([]);
-  // Estado para nuevas imágenes a subir
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
+  const [imagenesNuevas, setImagenesNuevas] = useState([]);
   const [imagenesPreview, setImagenesPreview] = useState([]);
 
+  // ✅ Formulario principal
   const [formData, setFormData] = useState({
     nombre_producto: "",
     descripcion: "",
@@ -115,40 +115,62 @@ const ProductosPanel = () => {
 
   // ✅ Manejo de NUEVAS imágenes seleccionadas
   const handleImagenesChange = (e) => {
-    const files = Array.from(e.target.files);
-    const totalImagenes = imagenesExistentes.length + imagenesSeleccionadas.length + files.length;
+    const archivos = Array.from(e.target.files);
+
+    // Validar cantidad total
+    const totalImagenes =
+      imagenesExistentes.length + imagenesNuevas.length + archivos.length;
 
     if (totalImagenes > 5) {
-      setError(`Máximo 5 imágenes. Actualmente tienes ${imagenesExistentes.length + imagenesSeleccionadas.length}`);
+      setError(
+        `⚠️ Solo puedes tener máximo 5 imágenes. Actualmente tienes ${
+          imagenesExistentes.length + imagenesNuevas.length
+        }`
+      );
+      setTimeout(() => setError(""), 3000);
       return;
     }
 
-    const validas = files.filter((file) => {
-      if (file.size > 5 * 1024 * 1024) {
-        setError(`${file.name} excede el tamaño máximo de 5MB`);
+    // Validar tamaño y formato
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    const archivosValidos = archivos.filter((archivo) => {
+      if (archivo.size > MAX_SIZE) {
+        setError(`❌ ${archivo.name} excede el tamaño máximo de 5MB`);
+        setTimeout(() => setError(""), 3000);
         return false;
       }
-      if (!["image/jpeg", "image/png", "image/gif", "image/webp"].includes(file.type)) {
-        setError(`${file.name} no es un formato válido`);
+      if (
+        !["image/jpeg", "image/png", "image/gif", "image/webp"].includes(
+          archivo.type
+        )
+      ) {
+        setError(`❌ ${archivo.name} no es un formato válido`);
+        setTimeout(() => setError(""), 3000);
         return false;
       }
       return true;
     });
 
-    setImagenesSeleccionadas((prev) => [...prev, ...validas]);
+    if (archivosValidos.length === 0) return;
 
-    validas.forEach((file) => {
+    // Agregar a nuevas imágenes
+    setImagenesNuevas((prev) => [...prev, ...archivosValidos]);
+
+    // Crear previews
+    archivosValidos.forEach((archivo) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagenesPreview((prev) => [...prev, { url: reader.result, tipo: 'nueva' }]);
+        setImagenesPreview((prev) => [...prev, reader.result]);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(archivo);
     });
+
+    console.log(`✅ ${archivosValidos.length} imagen(es) seleccionada(s)`);
   };
 
   // ✅ Eliminar preview de NUEVA imagen
   const eliminarImagenPreview = (index) => {
-    setImagenesSeleccionadas((prev) => prev.filter((_, i) => i !== index));
+    setImagenesNuevas((prev) => prev.filter((_, i) => i !== index));
     setImagenesPreview((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -167,13 +189,16 @@ const ProductosPanel = () => {
       );
 
       if (response.data.success) {
-        setImagenesExistentes((prev) => prev.filter((img) => img.id_imagen_prod !== id_imagen));
-        setExito("Imagen eliminada correctamente");
+        setImagenesExistentes((prev) =>
+          prev.filter((img) => img.id_imagen_prod !== id_imagen)
+        );
+        setExito("✅ Imagen eliminada correctamente");
         setTimeout(() => setExito(""), 2000);
       }
     } catch (error) {
       console.error("Error al eliminar imagen:", error);
       setError(error.response?.data?.error || "Error al eliminar imagen");
+      setTimeout(() => setError(""), 3000);
     } finally {
       setProcesando(false);
     }
@@ -191,20 +216,10 @@ const ProductosPanel = () => {
       stock: "",
       pausado: false,
     });
-    setImagenesSeleccionadas([]);
-    setImagenesPreview([]);
     setImagenesExistentes([]);
+    setImagenesNuevas([]);
+    setImagenesPreview([]);
     setModalAbierto(true);
-  };
-
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    setModoEdicion(false);
-    setProductoEditando(null);
-    setError("");
-    setImagenesSeleccionadas([]);
-    setImagenesPreview([]);
-    setImagenesExistentes([]);
   };
 
   const abrirModalEditar = async (producto) => {
@@ -230,50 +245,65 @@ const ProductosPanel = () => {
         }
       );
 
-      if (response.data.success && response.data.imagenes.length > 0) {
+      if (response.data.success && response.data.imagenes) {
         setImagenesExistentes(response.data.imagenes);
       }
     } catch (error) {
       console.error("Error al cargar imágenes del producto:", error);
     }
 
-    setImagenesSeleccionadas([]);
+    setImagenesNuevas([]);
     setImagenesPreview([]);
     setModalAbierto(true);
   };
 
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    setModoEdicion(false);
+    setProductoEditando(null);
+    setError("");
+    setImagenesExistentes([]);
+    setImagenesNuevas([]);
+    setImagenesPreview([]);
+  };
+
+  // ✅ SUBMIT PRINCIPAL - Crear o Actualizar Producto
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setExito("");
 
-    if (!formData.nombre_producto.trim()) {
-      setError("El nombre del producto es requerido");
-      return;
-    }
-
-    if (!formData.fk_categoria) {
-      setError("Debes seleccionar una categoría");
-      return;
-    }
-
-    if (!formData.precio || parseFloat(formData.precio) <= 0) {
-      setError("El precio debe ser mayor a cero");
-      return;
-    }
-
-    if (!formData.stock || parseInt(formData.stock) < 0) {
-      setError("El stock no puede ser negativo");
-      return;
-    }
+    console.log("📝 Guardando producto...");
+    console.log("Modo:", modoEdicion ? "EDICIÓN" : "CREACIÓN");
 
     try {
+      setProcesando(true);
       const token = localStorage.getItem("token");
 
+      // ✅ Preparar datos del producto (SOLO JSON)
+      const datosProducto = {
+        nombre_producto: formData.nombre_producto.trim(),
+        descripcion: formData.descripcion.trim(),
+        fk_categoria: parseInt(formData.fk_categoria),
+        fk_tipo_vehiculo: formData.fk_tipo_vehiculo
+          ? parseInt(formData.fk_tipo_vehiculo)
+          : null,
+        precio: parseFloat(formData.precio),
+        stock: parseInt(formData.stock),
+        pausado: Boolean(formData.pausado),
+      };
+
+      console.log("📦 Datos del producto:", datosProducto);
+
+      let idProducto;
+
       if (modoEdicion) {
+        // ✅ ACTUALIZAR PRODUCTO EXISTENTE
+        console.log(
+          `🔄 Actualizando producto ${productoEditando.id_producto}...`
+        );
+
         const response = await axios.put(
           `${API_URL}/productos/${productoEditando.id_producto}`,
-          formData,
+          datosProducto,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -282,71 +312,91 @@ const ProductosPanel = () => {
           }
         );
 
-        if (response.data.success) {
-          // ✅ Si hay NUEVAS imágenes, subirlas
-          if (imagenesSeleccionadas.length > 0) {
-            await subirImagenes(productoEditando.id_producto);
-          }
-
-          setExito("Producto actualizado con éxito");
-          await cargarProductos();
-          cerrarModal();
-          setTimeout(() => setExito(""), 3000);
+        if (!response.data.success) {
+          throw new Error(
+            response.data.error || "Error al actualizar producto"
+          );
         }
+
+        idProducto = productoEditando.id_producto;
+        console.log("✅ Producto actualizado");
       } else {
-        const response = await axios.post(`${API_URL}/productos/`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        // ✅ CREAR NUEVO PRODUCTO
+        console.log("➕ Creando nuevo producto...");
+
+        const response = await axios.post(
+          `${API_URL}/productos/`,
+          datosProducto,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Error al crear producto");
+        }
+
+        idProducto = response.data.id_producto;
+        console.log("✅ Producto creado con ID:", idProducto);
+      }
+
+      // ✅ PASO 2: Subir NUEVAS imágenes (SI HAY)
+      if (imagenesNuevas.length > 0) {
+        console.log(`📤 Subiendo ${imagenesNuevas.length} imagen(es)...`);
+
+        const formDataImagenes = new FormData();
+        formDataImagenes.append("id_producto", idProducto);
+
+        imagenesNuevas.forEach((imagen) => {
+          formDataImagenes.append("imagenes", imagen);
         });
 
-        if (response.data.success) {
-          const idProducto = response.data.id_producto;
-
-          if (imagenesSeleccionadas.length > 0) {
-            await subirImagenes(idProducto);
+        const responseImagenes = await axios.post(
+          `${API_URL}/productos/imagenes/subir`,
+          formDataImagenes,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
+            },
           }
+        );
 
-          setExito("Producto creado con éxito");
-          await cargarProductos();
-          cerrarModal();
-          setTimeout(() => setExito(""), 3000);
+        if (responseImagenes.data.success) {
+          console.log("✅ Imágenes subidas:", responseImagenes.data.imagenes);
+        } else {
+          console.warn(
+            "⚠️ Error al subir imágenes:",
+            responseImagenes.data.error
+          );
         }
       }
+
+      // ✅ PASO 3: Recargar productos y cerrar modal
+      await cargarProductos();
+      cerrarModal();
+
+      const mensaje = modoEdicion
+        ? "✅ Producto actualizado correctamente"
+        : "✅ Producto creado correctamente";
+
+      setExito(mensaje);
+      setTimeout(() => setExito(""), 3000);
     } catch (error) {
-      console.error("Error al guardar producto:", error);
-      setError(error.response?.data?.error || "Error al guardar el producto");
-    }
-  };
+      console.error("❌ ERROR AL GUARDAR:", error);
 
-  const subirImagenes = async (idProducto) => {
-    const token = localStorage.getItem("token");
-    const formDataImages = new FormData();
+      const mensajeError =
+        error.response?.data?.error ||
+        error.message ||
+        "Error desconocido al guardar producto";
 
-    formDataImages.append("id_producto", idProducto);
-
-    imagenesSeleccionadas.forEach((imagen) => {
-      formDataImages.append("imagenes", imagen);
-    });
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/productos/imagenes/subir`,
-        formDataImages,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (!response.data.success) {
-        console.error("Error al subir imágenes:", response.data.error);
-      }
-    } catch (error) {
-      console.error("Error al subir imágenes:", error);
+      setError(mensajeError);
+      setTimeout(() => setError(""), 5000);
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -413,7 +463,9 @@ const ProductosPanel = () => {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", padding: "3rem" }}>
+      <div
+        style={{ display: "flex", justifyContent: "center", padding: "3rem" }}
+      >
         <Loader size={48} className="spinner" />
       </div>
     );
@@ -447,7 +499,10 @@ const ProductosPanel = () => {
       <div className="card">
         {productos.length === 0 ? (
           <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
-            <Package size={64} style={{ color: "#d1d5db", margin: "0 auto 1.5rem" }} />
+            <Package
+              size={64}
+              style={{ color: "#d1d5db", margin: "0 auto 1.5rem" }}
+            />
             <h3>No tienes productos publicados</h3>
             <p>Comienza a vender publicando tu primer producto</p>
             <button className="btn btn-primary" onClick={abrirModalCrear}>
@@ -474,9 +529,23 @@ const ProductosPanel = () => {
                     <td>
                       <div className="product-info">
                         <div className="product-image">
-                          <Package size={24} />
+                          {producto.imagen_principal ? (
+                            <img
+                              src={producto.imagen_principal}
+                              alt={producto.nombre_producto}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <Package size={24} />
+                          )}
                         </div>
-                        <span className="product-name">{producto.nombre_producto}</span>
+                        <span className="product-name">
+                          {producto.nombre_producto}
+                        </span>
                       </div>
                     </td>
                     <td>{producto.nombre_categoria || "-"}</td>
@@ -484,7 +553,9 @@ const ProductosPanel = () => {
                       ${parseFloat(producto.precio).toLocaleString()}
                     </td>
                     <td>
-                      <span className={producto.stock === 0 ? "stock-warning" : ""}>
+                      <span
+                        className={producto.stock === 0 ? "stock-warning" : ""}
+                      >
                         {producto.stock}
                       </span>
                     </td>
@@ -504,7 +575,11 @@ const ProductosPanel = () => {
                           onClick={() => togglePausarProducto(producto)}
                           title={producto.pausado ? "Activar" : "Pausar"}
                         >
-                          {producto.pausado ? <Play size={18} /> : <Pause size={18} />}
+                          {producto.pausado ? (
+                            <Play size={18} />
+                          ) : (
+                            <Pause size={18} />
+                          )}
                         </button>
                         <button
                           className="btn-icon"
@@ -545,7 +620,10 @@ const ProductosPanel = () => {
 
             <div className="modal-content">
               {error && (
-                <div className="alert alert-error" style={{ marginBottom: "1rem" }}>
+                <div
+                  className="alert alert-error"
+                  style={{ marginBottom: "1rem" }}
+                >
                   <span>{error}</span>
                 </div>
               )}
@@ -554,7 +632,8 @@ const ProductosPanel = () => {
                 <div className="form-grid">
                   <div className="form-group full-width">
                     <label htmlFor="nombre_producto">
-                      Nombre del Producto <span style={{ color: "#dc2626" }}>*</span>
+                      Nombre del Producto{" "}
+                      <span style={{ color: "#dc2626" }}>*</span>
                     </label>
                     <input
                       type="text"
@@ -598,15 +677,14 @@ const ProductosPanel = () => {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="fk_tipo_vehiculo">Tipo de Vehículo *</label>
+                    <label htmlFor="fk_tipo_vehiculo">Tipo de Vehículo</label>
                     <select
                       id="fk_tipo_vehiculo"
                       name="fk_tipo_vehiculo"
                       value={formData.fk_tipo_vehiculo}
                       onChange={handleInputChange}
-                      required
                     >
-                      <option value="">Selecciona tipo</option>
+                      <option value="">Selecciona tipo (opcional)</option>
                       {tiposVehiculo.map((tipo) => (
                         <option key={tipo.id_tipo} value={tipo.id_tipo}>
                           {tipo.nombre}
@@ -644,23 +722,33 @@ const ProductosPanel = () => {
                     />
                   </div>
 
-                  {/* ✅ SECCIÓN DE IMÁGENES MEJORADA */}
+                  {/* ✅ SECCIÓN DE IMÁGENES */}
                   <div className="form-group full-width">
                     <label>
-                      <ImageIcon size={16} style={{ display: "inline", marginRight: "0.5rem" }} />
+                      <ImageIcon
+                        size={16}
+                        style={{ display: "inline", marginRight: "0.5rem" }}
+                      />
                       Imágenes del Producto (Máximo 5)
                     </label>
 
-                    {/* ✅ Mostrar imágenes EXISTENTES (si está en modo edición) */}
+                    {/* ✅ Imágenes EXISTENTES (solo en modo edición) */}
                     {modoEdicion && imagenesExistentes.length > 0 && (
                       <div style={{ marginBottom: "1rem" }}>
-                        <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
+                        <p
+                          style={{
+                            fontSize: "0.875rem",
+                            color: "#6b7280",
+                            marginBottom: "0.5rem",
+                          }}
+                        >
                           Imágenes actuales ({imagenesExistentes.length}/5):
                         </p>
                         <div
                           style={{
                             display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+                            gridTemplateColumns:
+                              "repeat(auto-fill, minmax(100px, 1fr))",
                             gap: "0.75rem",
                           }}
                         >
@@ -672,7 +760,9 @@ const ProductosPanel = () => {
                                 aspectRatio: "1",
                                 borderRadius: "8px",
                                 overflow: "hidden",
-                                border: imagen.es_principal ? "3px solid #007BFF" : "2px solid #e5e7eb",
+                                border: imagen.es_principal
+                                  ? "3px solid #007BFF"
+                                  : "2px solid #e5e7eb",
                               }}
                             >
                               <img
@@ -686,7 +776,9 @@ const ProductosPanel = () => {
                               />
                               <button
                                 type="button"
-                                onClick={() => eliminarImagenExistente(imagen.id_imagen_prod, productoEditando.id_producto)}
+                                onClick={() =>
+                                  eliminarImagenExistente(imagen.id_imagen_prod)
+                                }
                                 disabled={procesando}
                                 style={{
                                   position: "absolute",
@@ -701,12 +793,18 @@ const ProductosPanel = () => {
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
-                                  cursor: procesando ? "not-allowed" : "pointer",
+                                  cursor: procesando
+                                    ? "not-allowed"
+                                    : "pointer",
                                   padding: 0,
                                   opacity: procesando ? 0.5 : 1,
                                 }}
                               >
-                                {procesando ? <Loader size={14} className="spinner" /> : <X size={14} />}
+                                {procesando ? (
+                                  <Loader size={14} className="spinner" />
+                                ) : (
+                                  <X size={14} />
+                                )}
                               </button>
                               {imagen.es_principal && (
                                 <span
@@ -731,129 +829,184 @@ const ProductosPanel = () => {
                       </div>
                     )}
 
-                    {/* ✅ Input para subir NUEVAS imágenes */}
-                    <div className="upload-images-container">
-                      <input
-                        type="file"
-                        id="imagenes-input"
-                        accept="image/jpeg,image/png,image/gif,image/webp"
-                        multiple
-                        onChange={handleImagenesChange}
-                        style={{ display: "none" }}
-                      />
+                    {/* ✅ Input para NUEVAS imágenes */}
+                    {imagenesExistentes.length + imagenesNuevas.length < 5 && (
+                      <div className="upload-images-container">
+                        <input
+                          type="file"
+                          id="imagenes-input"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          multiple
+                          onChange={handleImagenesChange}
+                          style={{ display: "none" }}
+                        />
 
+                        <label
+                          htmlFor="imagenes-input"
+                          className="btn-upload-images"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "0.5rem",
+                            padding: "1rem",
+                            border: "2px dashed #d1d5db",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            backgroundColor: "#f9fafb",
+                          }}
+                        >
+                          <Upload size={20} />
+                          <span>
+                            {modoEdicion
+                              ? "Agregar Más Imágenes"
+                              : "Seleccionar Imágenes"}
+                          </span>
+                        </label>
+                      </div>
+                    )}
+
+                    {/* ✅ Previews de NUEVAS imágenes */}
+                    {imagenesPreview.length > 0 && (
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fill, minmax(100px, 1fr))",
+                          gap: "0.75rem",
+                          marginTop: "1rem",
+                        }}
+                      >
+                        {imagenesPreview.map((preview, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              position: "relative",
+                              aspectRatio: "1",
+                              borderRadius: "8px",
+                              overflow: "hidden",
+                              border: "2px solid #e5e7eb",
+                            }}
+                          >
+                            <img
+                              src={preview}
+                              alt={`Preview ${index + 1}`}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => eliminarImagenPreview(index)}
+                              style={{
+                                position: "absolute",
+                                top: "4px",
+                                right: "4px",
+                                background: "#dc2626",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "50%",
+                                width: "24px",
+                                height: "24px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              <X size={14} />
+                            </button>
+                            {index === 0 && imagenesExistentes.length === 0 && (
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  bottom: "4px",
+                                  left: "4px",
+                                  background: "#007BFF",
+                                  color: "white",
+                                  padding: "2px 6px",
+                                  borderRadius: "4px",
+                                  fontSize: "0.65rem",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Principal
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "#6b7280",
+                        marginTop: "0.5rem",
+                      }}
+                    >
+                      Formatos: JPG, PNG, GIF, WEBP (máx. 5MB cada una).
+                      {modoEdicion
+                        ? " Puedes eliminar imágenes existentes y agregar nuevas."
+                        : " La primera imagen será la principal."}
+                    </p>
+                  </div>
+
+                  {/* ✅ Checkbox pausado (opcional, solo visible en edición) */}
+                  {modoEdicion && (
+                    <div className="form-group full-width">
                       <label
-                        htmlFor="imagenes-input"
-                        className="btn-upload-images"
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
                           gap: "0.5rem",
-                          padding: "1rem",
-                          border: "2px dashed #d1d5db",
-                          borderRadius: "8px",
                           cursor: "pointer",
-                          transition: "all 0.2s",
-                          backgroundColor: "#f9fafb",
                         }}
                       >
-                        <Upload size={20} />
-                        <span>Agregar Más Imágenes</span>
+                        <input
+                          type="checkbox"
+                          name="pausado"
+                          checked={formData.pausado}
+                          onChange={handleInputChange}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <span>Producto pausado (no visible en catálogo)</span>
                       </label>
-
-                      {/* ✅ Previews de NUEVAS imágenes seleccionadas */}
-                      {imagenesPreview.length > 0 && (
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
-                            gap: "0.75rem",
-                            marginTop: "1rem",
-                          }}
-                        >
-                          {imagenesPreview.map((preview, index) => (
-                            <div
-                              key={index}
-                              style={{
-                                position: "relative",
-                                aspectRatio: "1",
-                                borderRadius: "8px",
-                                overflow: "hidden",
-                                border: "2px solid #e5e7eb",
-                              }}
-                            >
-                              <img
-                                src={preview.url}
-                                alt={`Preview ${index + 1}`}
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                }}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => eliminarImagenPreview(index)}
-                                style={{
-                                  position: "absolute",
-                                  top: "4px",
-                                  right: "4px",
-                                  background: "#dc2626",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "50%",
-                                  width: "24px",
-                                  height: "24px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  padding: 0,
-                                }}
-                              >
-                                <X size={14} />
-                              </button>
-                              {index === 0 && imagenesExistentes.length === 0 && (
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    bottom: "4px",
-                                    left: "4px",
-                                    background: "#007BFF",
-                                    color: "white",
-                                    padding: "2px 6px",
-                                    borderRadius: "4px",
-                                    fontSize: "0.65rem",
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  Principal
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <p style={{ fontSize: "0.75rem", color: "#6b7280", marginTop: "0.5rem" }}>
-                        Formatos: JPG, PNG, GIF, WEBP (máx. 5MB cada una). 
-                        {modoEdicion 
-                          ? " Puedes eliminar imágenes existentes y agregar nuevas."
-                          : " La primera imagen será la principal."}
-                      </p>
                     </div>
-                  </div>
+                  )}
                 </div>
               </form>
             </div>
 
             <div className="modal-footer">
-              <button type="button" className="btn btn-outline" onClick={cerrarModal}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={cerrarModal}
+                disabled={procesando}
+              >
                 Cancelar
               </button>
-              <button type="submit" form="formProducto" className="btn btn-primary">
-                {modoEdicion ? "Guardar Cambios" : "Publicar Producto"}
+              <button
+                type="submit"
+                form="formProducto"
+                className="btn btn-primary"
+                disabled={procesando}
+              >
+                {procesando ? (
+                  <>
+                    <Loader size={16} className="spinner" />
+                    Guardando...
+                  </>
+                ) : modoEdicion ? (
+                  "Guardar Cambios"
+                ) : (
+                  "Publicar Producto"
+                )}
               </button>
             </div>
           </div>

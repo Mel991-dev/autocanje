@@ -138,35 +138,64 @@ def actualizar_producto(id_producto, datos):
     conn = conexion()
     cursor = conn.cursor()
     
+    print(f"\n🗄️ actualizar_producto() - Modelo")
+    print(f"   ID Producto: {id_producto}")
+    print(f"   Datos a actualizar: {list(datos.keys())}")
+    
     try:
         campos = []
         valores = []
         
         for campo, valor in datos.items():
+            # Convertir pausado a 0/1 para MySQL TINYINT
             if campo == 'pausado':
+                valor_sql = 1 if valor else 0
                 campos.append(f"{campo} = %s")
-                valores.append(int(valor))
+                valores.append(valor_sql)
+                print(f"   {campo}: {valor} → {valor_sql} (SQL)")
             else:
                 campos.append(f"{campo} = %s")
                 valores.append(valor)
+                print(f"   {campo}: {valor}")
         
+        # ID del producto al final para el WHERE
         valores.append(id_producto)
         
+        # Construir query SQL
         sql = f"UPDATE producto SET {', '.join(campos)} WHERE id_producto = %s"
         
-        cursor.execute(sql, valores)
+        print(f"\n📝 SQL Query:")
+        print(f"   {sql}")
+        print(f"\n📊 Valores (orden):")
+        for i, val in enumerate(valores):
+            print(f"   [{i}]: {val} ({type(val).__name__})")
+        
+        # Ejecutar
+        cursor.execute(sql, tuple(valores))
         conn.commit()
         
         filas_afectadas = cursor.rowcount
+        print(f"\n✅ Filas afectadas: {filas_afectadas}")
+        
         cursor.close()
         conn.close()
         
         return filas_afectadas > 0
         
     except Exception as e:
-        print(f"Error al actualizar producto: {str(e)}")
-        cursor.close()
-        conn.close()
+        print(f"\n❌ ERROR en actualizar_producto():")
+        print(f"   Tipo: {type(e).__name__}")
+        print(f"   Mensaje: {str(e)}")
+        
+        import traceback
+        traceback.print_exc()
+        
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass
+        
         return False
 
 

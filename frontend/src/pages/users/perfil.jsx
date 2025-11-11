@@ -1,43 +1,57 @@
 // frontend/src/pages/users/Perfil.jsx
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { User, Mail, Phone, MapPin, Lock, Save, Edit, Shield, TrendingUp, Package, DollarSign, Star } from 'lucide-react';
-import ProductosPanel from '../vendedor/ProductosPanel';
-import '../../styles/perfil.css';
-import '../../styles/vendedor/productosPanel.css';
-import '../../styles/globals.css';
-import Header from '../../components/header';
-import Footer from '../../components/footer';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Lock,
+  Save,
+  Edit,
+  Shield,
+  TrendingUp,
+  Package,
+  DollarSign,
+  Star,
+} from "lucide-react";
+import ProductosPanel from "../vendedor/ProductosPanel";
+import "../../styles/perfil.css";
+import "../../styles/vendedor/productosPanel.css";
+import "../../styles/globals.css";
+import Header from "../../components/header";
+import Footer from "../../components/footer";
+import MembresiaStatus from "../../components/membresiaStatus";
 
 const Perfil = () => {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
-  const [error, setError] = useState('');
-  const [exito, setExito] = useState('');
-  
-  const [tabActivo, setTabActivo] = useState('personal');
+  const [error, setError] = useState("");
+  const [exito, setExito] = useState("");
+
+  const [tabActivo, setTabActivo] = useState("personal");
   const [modoEdicion, setModoEdicion] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    identificacion: '',
-    primer_nombre: '',
-    segundo_nombre: '',
-    primer_apellido: '',
-    segundo_apellido: '',
-    email: '',
-    telefono: '',
-    direccion: '',
+    identificacion: "",
+    primer_nombre: "",
+    segundo_nombre: "",
+    primer_apellido: "",
+    segundo_apellido: "",
+    email: "",
+    telefono: "",
+    direccion: "",
     es_vendedor: false,
     es_comprador: false,
-    es_admin: false
+    es_admin: false,
   });
-  
+
   const [passwordData, setPasswordData] = useState({
-    contrasena_actual: '',
-    contrasena_nueva: '',
-    confirmar_contrasena: ''
+    contrasena_actual: "",
+    contrasena_nueva: "",
+    confirmar_contrasena: "",
   });
 
   useEffect(() => {
@@ -46,50 +60,50 @@ const Perfil = () => {
 
   const cargarPerfil = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       if (!token) {
-        window.location.href = '/login';
+        window.location.href = "/login";
         return;
       }
-      
+
       const response = await axios.get(
-        'http://127.0.0.1:5000/api/auth/perfil',
+        "http://127.0.0.1:5000/api/auth/perfil",
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      
+
       if (response.data.success) {
         const userData = response.data.usuario;
         setUsuario(userData);
-        
+
         setFormData({
-          identificacion: userData.identificacion || '',
-          primer_nombre: userData.primer_nombre || '',
-          segundo_nombre: userData.segundo_nombre || '',
-          primer_apellido: userData.primer_apellido || '',
-          segundo_apellido: userData.segundo_apellido || '',
-          email: userData.email || '',
-          telefono: userData.telefono || '',
-          direccion: userData.direccion || '',
+          identificacion: userData.identificacion || "",
+          primer_nombre: userData.primer_nombre || "",
+          segundo_nombre: userData.segundo_nombre || "",
+          primer_apellido: userData.primer_apellido || "",
+          segundo_apellido: userData.segundo_apellido || "",
+          email: userData.email || "",
+          telefono: userData.telefono || "",
+          direccion: userData.direccion || "",
           es_vendedor: userData.es_vendedor || false,
           es_comprador: userData.es_comprador || false,
-          es_admin: userData.es_admin || false
+          es_admin: userData.es_admin || false,
         });
       }
-      
+
       setLoading(false);
     } catch (error) {
-      console.error('Error al cargar perfil:', error);
+      console.error("Error al cargar perfil:", error);
       if (error.response?.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('usuario');
-        window.location.href = '/login';
+        localStorage.removeItem("token");
+        localStorage.removeItem("usuario");
+        window.location.href = "/login";
       } else {
-        setError('Error al cargar el perfil');
+        setError("Error al cargar el perfil");
         setLoading(false);
       }
     }
@@ -97,17 +111,17 @@ const Perfil = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
-    setPasswordData(prev => ({
+    setPasswordData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -121,56 +135,55 @@ const Perfil = () => {
   const guardarInformacion = async (e) => {
     e.preventDefault();
     setGuardando(true);
-    setError('');
-    setExito('');
-    
+    setError("");
+    setExito("");
+
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const response = await axios.put(
-        'http://127.0.0.1:5000/api/auth/perfil',
+        "http://127.0.0.1:5000/api/auth/perfil",
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       if (response.data.success) {
-        setExito('Perfil actualizado correctamente');
-        
+        setExito("Perfil actualizado correctamente");
+
         const usuarioActualizado = response.data.usuario;
-        localStorage.setItem('usuario', JSON.stringify(usuarioActualizado));
-        
+        localStorage.setItem("usuario", JSON.stringify(usuarioActualizado));
+
         if (response.data.token) {
-          localStorage.setItem('token', response.data.token);
+          localStorage.setItem("token", response.data.token);
         }
-        
+
         setUsuario(usuarioActualizado);
         setModoEdicion(false);
-        
+
         setFormData({
-          identificacion: usuarioActualizado.identificacion || '',
-          primer_nombre: usuarioActualizado.primer_nombre || '',
-          segundo_nombre: usuarioActualizado.segundo_nombre || '',
-          primer_apellido: usuarioActualizado.primer_apellido || '',
-          segundo_apellido: usuarioActualizado.segundo_apellido || '',
-          email: usuarioActualizado.email || '',
-          telefono: usuarioActualizado.telefono || '',
-          direccion: usuarioActualizado.direccion || '',
+          identificacion: usuarioActualizado.identificacion || "",
+          primer_nombre: usuarioActualizado.primer_nombre || "",
+          segundo_nombre: usuarioActualizado.segundo_nombre || "",
+          primer_apellido: usuarioActualizado.primer_apellido || "",
+          segundo_apellido: usuarioActualizado.segundo_apellido || "",
+          email: usuarioActualizado.email || "",
+          telefono: usuarioActualizado.telefono || "",
+          direccion: usuarioActualizado.direccion || "",
           es_vendedor: usuarioActualizado.es_vendedor || false,
           es_comprador: usuarioActualizado.es_comprador || false,
-          es_admin: usuarioActualizado.es_admin || false
+          es_admin: usuarioActualizado.es_admin || false,
         });
-        
-        setTimeout(() => setExito(''), 3000);
+
+        setTimeout(() => setExito(""), 3000);
       }
-      
     } catch (error) {
-      console.error('Error al guardar:', error);
-      setError(error.response?.data?.error || 'Error al actualizar el perfil');
+      console.error("Error al guardar:", error);
+      setError(error.response?.data?.error || "Error al actualizar el perfil");
     } finally {
       setGuardando(false);
     }
@@ -179,68 +192,70 @@ const Perfil = () => {
   const cambiarContrasena = async (e) => {
     e.preventDefault();
     setGuardando(true);
-    setError('');
-    setExito('');
-    
+    setError("");
+    setExito("");
+
     if (passwordData.contrasena_nueva !== passwordData.confirmar_contrasena) {
-      setError('Las contraseñas no coinciden');
+      setError("Las contraseñas no coinciden");
       setGuardando(false);
       return;
     }
-    
+
     if (passwordData.contrasena_nueva.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres');
+      setError("La contraseña debe tener al menos 8 caracteres");
       setGuardando(false);
       return;
     }
-    
+
     try {
-      const token = localStorage.getItem('token');
-      
+      const token = localStorage.getItem("token");
+
       const response = await axios.post(
-        'http://127.0.0.1:5000/api/auth/cambiar-contrasena',
+        "http://127.0.0.1:5000/api/auth/cambiar-contrasena",
         {
           contrasena_actual: passwordData.contrasena_actual,
-          contrasena_nueva: passwordData.contrasena_nueva
+          contrasena_nueva: passwordData.contrasena_nueva,
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       if (response.data.success) {
-        setExito('Contraseña actualizada correctamente');
-        
+        setExito("Contraseña actualizada correctamente");
+
         setPasswordData({
-          contrasena_actual: '',
-          contrasena_nueva: '',
-          confirmar_contrasena: ''
+          contrasena_actual: "",
+          contrasena_nueva: "",
+          confirmar_contrasena: "",
         });
-        
-        setTimeout(() => setExito(''), 3000);
+
+        setTimeout(() => setExito(""), 3000);
       }
-      
     } catch (error) {
-      console.error('Error al cambiar contraseña:', error);
-      setError(error.response?.data?.error || 'Error al cambiar la contraseña');
+      console.error("Error al cambiar contraseña:", error);
+      setError(error.response?.data?.error || "Error al cambiar la contraseña");
     } finally {
       setGuardando(false);
     }
   };
 
   const getNombreCompleto = () => {
-    if (!usuario) return '';
+    if (!usuario) return "";
     return `${usuario.primer_nombre} ${usuario.primer_apellido}`;
   };
 
   const getRoles = () => {
     const roles = [];
-    if (usuario?.es_admin) roles.push({ label: 'Premium', clase: 'badge-premium' });
-    if (usuario?.es_vendedor) roles.push({ label: 'Vendedor', clase: 'badge-outline' });
-    if (usuario?.es_comprador) roles.push({ label: 'Comprador', clase: 'badge-outline' });
+    if (usuario?.es_admin)
+      roles.push({ label: "Premium", clase: "badge-premium" });
+    if (usuario?.es_vendedor)
+      roles.push({ label: "Vendedor", clase: "badge-outline" });
+    if (usuario?.es_comprador)
+      roles.push({ label: "Comprador", clase: "badge-outline" });
     return roles;
   };
 
@@ -255,14 +270,14 @@ const Perfil = () => {
 
   return (
     <div className="container-perfil">
-      <Header/>
+      <Header />
       {/* Profile Header */}
       <div className="profile-header">
         <div className="profile-header-content">
           <div className="avatar">
             <User size={48} />
           </div>
-          
+
           <div className="profile-info">
             <div className="profile-name-row">
               <h1 className="profile-name">{getNombreCompleto()}</h1>
@@ -289,11 +304,24 @@ const Perfil = () => {
             </div>
           </div>
 
-          <button className="btn btn-outline btn-editar" onClick={toggleModoEdicion}>
+          <button
+            className="btn btn-outline btn-editar"
+            onClick={toggleModoEdicion}
+          >
             {modoEdicion ? (
               <>
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                <svg
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
                 Cancelar
               </>
@@ -313,7 +341,7 @@ const Perfil = () => {
           <span>{error}</span>
         </div>
       )}
-      
+
       {exito && (
         <div className="alert alert-success">
           <span>{exito}</span>
@@ -324,34 +352,38 @@ const Perfil = () => {
       <div className="tabs">
         <div className="tabs-list">
           <button
-            className={`tab-button ${tabActivo === 'personal' ? 'active' : ''}`}
-            onClick={() => setTabActivo('personal')}
+            className={`tab-button ${tabActivo === "personal" ? "active" : ""}`}
+            onClick={() => setTabActivo("personal")}
           >
             <User size={16} />
             <span>Información Personal</span>
           </button>
-          
+
           <button
-            className={`tab-button ${tabActivo === 'security' ? 'active' : ''}`}
-            onClick={() => setTabActivo('security')}
+            className={`tab-button ${tabActivo === "security" ? "active" : ""}`}
+            onClick={() => setTabActivo("security")}
           >
             <Shield size={16} />
             <span>Seguridad</span>
           </button>
-          
+
           {usuario?.es_vendedor && (
             <>
               <button
-                className={`tab-button ${tabActivo === 'seller' ? 'active' : ''}`}
-                onClick={() => setTabActivo('seller')}
+                className={`tab-button ${
+                  tabActivo === "seller" ? "active" : ""
+                }`}
+                onClick={() => setTabActivo("seller")}
               >
                 <TrendingUp size={16} />
                 <span>Panel Vendedor</span>
               </button>
-              
+
               <button
-                className={`tab-button ${tabActivo === 'products' ? 'active' : ''}`}
-                onClick={() => setTabActivo('products')}
+                className={`tab-button ${
+                  tabActivo === "products" ? "active" : ""
+                }`}
+                onClick={() => setTabActivo("products")}
               >
                 <Package size={16} />
                 <span>Mis Productos</span>
@@ -362,12 +394,14 @@ const Perfil = () => {
       </div>
 
       {/* Tab Content: Personal */}
-      {tabActivo === 'personal' && (
+      {tabActivo === "personal" && (
         <div className="tab-content active">
           <div className="card">
             <div className="card-header">
               <h2 className="card-title">Información Personal</h2>
-              <p className="card-description">Actualiza tus datos personales y de contacto</p>
+              <p className="card-description">
+                Actualiza tus datos personales y de contacto
+              </p>
             </div>
             <form onSubmit={guardarInformacion}>
               <div className="form-grid">
@@ -420,7 +454,9 @@ const Perfil = () => {
                   />
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="identificacion">Identificación Personal</label>
+                  <label htmlFor="identificacion">
+                    Identificación Personal
+                  </label>
                   <input
                     type="text"
                     id="identificacion"
@@ -470,11 +506,19 @@ const Perfil = () => {
               </div>
               {modoEdicion && (
                 <div className="form-actions">
-                  <button type="submit" className="btn btn-primary" disabled={guardando}>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={guardando}
+                  >
                     <Save size={16} />
-                    {guardando ? 'Guardando...' : 'Guardar Cambios'}
+                    {guardando ? "Guardando..." : "Guardar Cambios"}
                   </button>
-                  <button type="button" className="btn btn-outline" onClick={toggleModoEdicion}>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={toggleModoEdicion}
+                  >
                     Cancelar
                   </button>
                 </div>
@@ -485,12 +529,16 @@ const Perfil = () => {
       )}
 
       {/* Tab Content: Security */}
-      {tabActivo === 'security' && (
+      {tabActivo === "security" && (
         <div className="tab-content active">
           <div className="card">
+            <MembresiaStatus />
+
             <div className="card-header">
               <h2 className="card-title">Cambiar Contraseña</h2>
-              <p className="card-description">Actualiza tu contraseña para mantener tu cuenta segura</p>
+              <p className="card-description">
+                Actualiza tu contraseña para mantener tu cuenta segura
+              </p>
             </div>
             <form onSubmit={cambiarContrasena}>
               <div className="form-grid">
@@ -515,10 +563,15 @@ const Perfil = () => {
                     onChange={handlePasswordChange}
                     placeholder="••••••••"
                   />
-                  <span className="help-text">Mínimo 8 caracteres, incluye mayúsculas, minúsculas y números</span>
+                  <span className="help-text">
+                    Mínimo 8 caracteres, incluye mayúsculas, minúsculas y
+                    números
+                  </span>
                 </div>
                 <div className="form-group full-width">
-                  <label htmlFor="confirmar_contrasena">Confirmar Nueva Contraseña</label>
+                  <label htmlFor="confirmar_contrasena">
+                    Confirmar Nueva Contraseña
+                  </label>
                   <input
                     type="password"
                     id="confirmar_contrasena"
@@ -530,9 +583,13 @@ const Perfil = () => {
                 </div>
               </div>
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary" disabled={guardando}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={guardando}
+                >
                   <Lock size={16} />
-                  {guardando ? 'Actualizando...' : 'Actualizar Contraseña'}
+                  {guardando ? "Actualizando..." : "Actualizar Contraseña"}
                 </button>
               </div>
             </form>
@@ -541,7 +598,7 @@ const Perfil = () => {
       )}
 
       {/* Tab Content: Seller Dashboard */}
-      {tabActivo === 'seller' && (
+      {tabActivo === "seller" && (
         <div className="tab-content active">
           <div className="stats-grid">
             <div className="stat-card">
@@ -574,7 +631,11 @@ const Perfil = () => {
             <div className="stat-card">
               <div className="stat-header">
                 <span className="stat-title">Calificación</span>
-                <Star className="stat-icon" size={20} style={{fill: '#FFC107', stroke: '#FFC107'}} />
+                <Star
+                  className="stat-icon"
+                  size={20}
+                  style={{ fill: "#FFC107", stroke: "#FFC107" }}
+                />
               </div>
               <div className="stat-value">0/5.0</div>
               <div className="stat-description">Sin reseñas aún</div>
@@ -584,9 +645,13 @@ const Perfil = () => {
           <div className="card">
             <div className="card-header">
               <h2 className="card-title">Ventas Recientes</h2>
-              <p className="card-description">Últimas transacciones de tus productos</p>
+              <p className="card-description">
+                Últimas transacciones de tus productos
+              </p>
             </div>
-            <div style={{padding: '2rem', textAlign: 'center', color: '#6b7280'}}>
+            <div
+              style={{ padding: "2rem", textAlign: "center", color: "#6b7280" }}
+            >
               <p>No hay ventas registradas aún</p>
             </div>
           </div>
@@ -594,12 +659,12 @@ const Perfil = () => {
       )}
 
       {/* Tab Content: Products */}
-      {tabActivo === 'products' && (
+      {tabActivo === "products" && (
         <div className="tab-content active">
           <ProductosPanel />
         </div>
       )}
-      <Footer/>
+      <Footer />
     </div>
   );
 };

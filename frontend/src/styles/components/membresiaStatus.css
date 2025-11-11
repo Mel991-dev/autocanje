@@ -1,0 +1,527 @@
+/* frontend/src/styles/componentes/membresiaStatus.css */
+
+.membresia-status-card {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   ESTADO DE CARGA
+   ============================================ */
+.membresia-status-card.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.membresia-loading {
+  text-align: center;
+  color: #666;
+}
+
+.membresia-loading .spin {
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+  color: #3b82f6;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   ESTADO DE ERROR
+   ============================================ */
+.membresia-status-card.error {
+  text-align: center;
+  color: #ef4444;
+  padding: 48px 32px;
+}
+
+.membresia-status-card.error svg {
+  margin-bottom: 16px;
+}
+
+.btn-retry {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.btn-retry:hover {
+  background: #2563eb;
+}
+
+/* ============================================
+   SIN MEMBRESÍA PREMIUM
+   ============================================ */
+.membresia-status-card.no-premium {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.no-premium-header {
+  margin-bottom: 16px;
+}
+
+.no-premium-header .crown-icon {
+  color: #fbbf24;
+  margin-bottom: 16px;
+}
+
+.no-premium-header h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.no-premium-description {
+  color: #666;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-premium-benefits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-premium-benefits .benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.no-premium-benefits .benefit-icon {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.no-premium-benefits .benefit-item span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.btn-ver-planes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1a1a1a;
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.btn-ver-planes:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
+/* ============================================
+   MEMBRESÍA PREMIUM ACTIVA
+   ============================================ */
+.membresia-status-card.premium-active {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+  border: 2px solid #3b82f6;
+}
+
+.premium-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.premium-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.premium-crown {
+  color: white;
+}
+
+.premium-title h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.premium-badge.activa {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.premium-badge.inactiva {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.premium-description {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ============================================
+   FECHAS E INFORMACIÓN
+   ============================================ */
+.premium-dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.date-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.date-item svg {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.date-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.date-value {
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.date-item.dias-restantes {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #3b82f6;
+}
+
+.date-item.dias-restantes.critico {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #ef4444;
+}
+
+.date-item.dias-restantes.critico svg {
+  color: #ef4444;
+}
+
+.date-value-highlight {
+  font-size: 1.5rem;
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+.date-item.dias-restantes.critico .date-value-highlight {
+  color: #ef4444;
+}
+
+/* ============================================
+   ALERTA DE VENCIMIENTO
+   ============================================ */
+.alerta-vencimiento {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.alerta-vencimiento svg {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alerta-vencimiento strong {
+  display: block;
+  color: #991b1b;
+  margin-bottom: 4px;
+}
+
+.alerta-vencimiento p {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ============================================
+   BENEFICIOS ACTIVOS
+   ============================================ */
+.premium-benefits-section {
+  margin-bottom: 24px;
+}
+
+.premium-benefits-section h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.benefit-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px;
+  background: white;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.benefit-card-icon {
+  margin-bottom: 12px;
+}
+
+.benefit-card-icon.yellow {
+  color: #fbbf24;
+}
+
+.benefit-card-icon.blue {
+  color: #3b82f6;
+}
+
+.benefit-card-icon.green {
+  color: #10b981;
+}
+
+.benefit-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.benefit-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.benefit-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.benefits-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+
+.benefits-list li:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #d1fae5;
+  color: #065f46;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   RENOVACIÓN
+   ============================================ */
+.renovacion-info {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.renovacion-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.renovacion-status svg {
+  color: #3b82f6;
+}
+
+.renovacion-note {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ============================================
+   BOTONES DE ACCIÓN
+   ============================================ */
+.premium-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-cambiar-plan,
+.btn-ver-reservas {
+  flex: 1;
+  min-width: 150px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-cambiar-plan {
+  background: white;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+}
+
+.btn-cambiar-plan:hover {
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-ver-reservas {
+  background: #3b82f6;
+  color: white;
+  border: 2px solid #3b82f6;
+}
+
+.btn-ver-reservas:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  text-decoration: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .membresia-status-card {
+    padding: 24px;
+  }
+
+  .premium-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .premium-icon-wrapper {
+    margin: 0 auto;
+  }
+
+  .premium-dates {
+    grid-template-columns: 1fr;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .premium-actions {
+    flex-direction: column;
+  }
+
+  .btn-cambiar-plan,
+  .btn-ver-reservas {
+    width: 100%;
+  }
+}

@@ -16,6 +16,16 @@ from models.membresia_model import (
 )
 from utils.auth_middleware import token_requerido
 
+# ✨ NUEVO: Importar middlewares premium
+from utils.premium_middleware import (
+    premium_requerido,
+    premium_opcional,
+    reservas_requerido,
+    descuento_disponible,
+    envio_prioritario_disponible,
+    log_uso_beneficio
+)
+
 # ============================================
 # ENDPOINTS: PLANES Y MEMBRESÍAS (HU-5.1)
 # ============================================
@@ -153,6 +163,7 @@ def obtener_mi_membresia_controller(usuario_id):
 # ============================================
 
 @token_requerido
+@premium_opcional
 def calcular_descuento_controller(usuario_id):
     """
     CA-5.2.1: Calcula descuento automático para usuarios premium
@@ -191,20 +202,19 @@ def calcular_descuento_controller(usuario_id):
 
 
 # ============================================
-# ENDPOINTS: SISTEMA DE RESERVAS (HU-5.3)
+# ENDPOINTS CON MIDDLEWARE PREMIUM APLICADO
 # ============================================
 
+# ===== RESERVAS (Requiere Premium con beneficio de reservas) =====
+
 @token_requerido
+@premium_requerido  # ✨ AGREGADO
+@reservas_requerido  # ✨ AGREGADO - Valida beneficio específico
 def crear_reserva_controller(usuario_id):
     """
     CA-5.3.1: Solo usuarios premium pueden realizar reservas
-    CA-5.3.2: Bloquea temporalmente el stock del producto reservado
-    CA-5.2.3: Establece fecha de expiración de 72 horas
+    CA-5.1.4: Validación de membresía activa
     POST /api/membresias/reservas
-    Body: {
-        "fk_producto": 1,
-        "cantidad": 2
-    }
     """
     if request.method == 'OPTIONS':
         return '', 204
@@ -231,6 +241,12 @@ def crear_reserva_controller(usuario_id):
         
         if not resultado['success']:
             return jsonify(resultado), 400
+        
+        # ✨ NUEVO: Registrar uso del beneficio
+        log_uso_beneficio(usuario_id, 'reserva', {
+            'producto_id': fk_producto,
+            'cantidad': cantidad
+        })
         
         return jsonify({
             'success': True,
@@ -295,6 +311,7 @@ def obtener_mis_reservas_controller(usuario_id):
 
 
 @token_requerido
+@premium_requerido
 def cancelar_reserva_controller(usuario_id, id_reserva):
     """
     CA-5.3.4: Si la reserva vence, el producto vuelve a estar disponible
@@ -330,6 +347,7 @@ def cancelar_reserva_controller(usuario_id, id_reserva):
 # ============================================
 
 @token_requerido
+@envio_prioritario_disponible
 def calcular_tiempo_entrega_controller(usuario_id):
     """
     CA-5.4.1: Calcula tiempos de entrega según tipo de membresía
@@ -354,7 +372,7 @@ def calcular_tiempo_entrega_controller(usuario_id):
             'error': 'Error al calcular tiempo de entrega'
         }), 500
 
-
+@premium_opcional
 @token_requerido
 def obtener_mis_envios_controller(usuario_id):
     """

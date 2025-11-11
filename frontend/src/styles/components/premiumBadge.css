@@ -1,0 +1,104 @@
+/* frontend/src/styles/components/premiumBadge.css */
+
+.premium-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1a1a1a;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  animation: fadeIn 0.5s ease;
+}
+
+.premium-badge-header:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+}
+
+.premium-badge-header svg {
+  animation: pulse 2s infinite;
+}
+
+.badge-text {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-dias {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* Estado crítico (próximo a vencer) */
+.premium-badge-header.critico {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  animation: pulse-warning 2s infinite;
+}
+
+.premium-badge-header.critico .badge-dias {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.5);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .premium-badge-header {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  .premium-badge-header svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .badge-dias {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+}

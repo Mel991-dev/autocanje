@@ -209,18 +209,14 @@
 
 .producto-info {
   flex: 1;
+  display: grid;
+  gap: 25px;
 }
 
 .producto-nombre {
   font-weight: 600;
   color: #1a1a1a;
   margin-bottom: 0.25rem;
-}
-
-.producto-categoria {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
 }
 
 .producto-cantidad {
@@ -340,11 +336,6 @@
   font-size: 0.875rem;
   color: #374151;
   margin-bottom: 0.5rem;
-}
-
-.entrega-nota {
-  font-size: 0.875rem;
-  color: #6b7280;
 }
 
 /* ============================================

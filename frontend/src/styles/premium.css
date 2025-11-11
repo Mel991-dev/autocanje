@@ -142,6 +142,8 @@
   color: #1a1a1a;
 }
 
+.premium-section-subtitle, .premium-section-title {text-align: center;}
+
 .premium-section-header p,
 .premium-section-subtitle {
   font-size: 1.2rem;

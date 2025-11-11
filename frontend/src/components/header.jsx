@@ -11,6 +11,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import "../styles/components/header.css";
+import PremiumBadge from "./premiumBadge";
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:5000/api";
@@ -132,6 +133,7 @@ const Header = () => {
         </form>
 
         <div className="header-actions">
+          <PremiumBadge />
           <button
             className="btn-base btn-icon-only btn-outlined cart-button"
             onClick={handleCartClick}
